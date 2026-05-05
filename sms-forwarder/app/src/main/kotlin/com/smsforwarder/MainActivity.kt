@@ -7,16 +7,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.smsforwarder.databinding.ActivityMainBinding
 
@@ -100,11 +104,24 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             binding.tilSim1WebhookUrl.error = null
-            prefs.sim1WebhookUrl    = url
-            prefs.sim1Secret        = binding.etSim1Secret.text?.toString()?.trim() ?: ""
-            prefs.sim1DeviceId      = binding.etSim1DeviceId.text?.toString()?.trim() ?: ""
-            prefs.sim1PhoneNumber   = binding.etSim1Phone.text?.toString()?.trim() ?: ""
+            prefs.sim1WebhookUrl  = url
+            prefs.sim1Secret      = binding.etSim1Secret.text?.toString()?.trim() ?: ""
+            prefs.sim1DeviceId    = binding.etSim1DeviceId.text?.toString()?.trim() ?: ""
+            prefs.sim1PhoneNumber = binding.etSim1Phone.text?.toString()?.trim() ?: ""
             Toast.makeText(this, "SIM 1 settings saved", Toast.LENGTH_SHORT).show()
+        }
+
+        // SIM 1 test
+        binding.btnTestSim1.setOnClickListener {
+            testConnection(
+                button    = binding.btnTestSim1,
+                statusView = binding.tvTestSim1Result,
+                url        = binding.etSim1WebhookUrl.text?.toString()?.trim() ?: "",
+                secret     = binding.etSim1Secret.text?.toString()?.trim() ?: "",
+                deviceId   = binding.etSim1DeviceId.text?.toString()?.trim() ?: "",
+                sentTo     = binding.etSim1Phone.text?.toString()?.trim() ?: "SIM1",
+                simLabel   = "SIM1"
+            )
         }
 
         // SIM 2 save
@@ -115,11 +132,24 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             binding.tilSim2WebhookUrl.error = null
-            prefs.sim2WebhookUrl    = url
-            prefs.sim2Secret        = binding.etSim2Secret.text?.toString()?.trim() ?: ""
-            prefs.sim2DeviceId      = binding.etSim2DeviceId.text?.toString()?.trim() ?: ""
-            prefs.sim2PhoneNumber   = binding.etSim2Phone.text?.toString()?.trim() ?: ""
+            prefs.sim2WebhookUrl  = url
+            prefs.sim2Secret      = binding.etSim2Secret.text?.toString()?.trim() ?: ""
+            prefs.sim2DeviceId    = binding.etSim2DeviceId.text?.toString()?.trim() ?: ""
+            prefs.sim2PhoneNumber = binding.etSim2Phone.text?.toString()?.trim() ?: ""
             Toast.makeText(this, "SIM 2 settings saved", Toast.LENGTH_SHORT).show()
+        }
+
+        // SIM 2 test
+        binding.btnTestSim2.setOnClickListener {
+            testConnection(
+                button     = binding.btnTestSim2,
+                statusView = binding.tvTestSim2Result,
+                url        = binding.etSim2WebhookUrl.text?.toString()?.trim() ?: "",
+                secret     = binding.etSim2Secret.text?.toString()?.trim() ?: "",
+                deviceId   = binding.etSim2DeviceId.text?.toString()?.trim() ?: "",
+                sentTo     = binding.etSim2Phone.text?.toString()?.trim() ?: "SIM2",
+                simLabel   = "SIM2"
+            )
         }
 
         // Add sender
@@ -185,6 +215,54 @@ class MainActivity : AppCompatActivity() {
             binding.tvStatusSubtitle.text = "Tap the toggle to start"
             binding.statusIndicator.setBackgroundResource(R.drawable.circle_red)
         }
+    }
+
+    // ------------------------------------------------------------------ test connection
+
+    private fun testConnection(
+        button: MaterialButton,
+        statusView: TextView,
+        url: String,
+        secret: String,
+        deviceId: String,
+        sentTo: String,
+        simLabel: String
+    ) {
+        if (url.isEmpty()) {
+            statusView.visibility = View.VISIBLE
+            statusView.setTextColor(Color.parseColor("#F44336"))
+            statusView.text = "✗ Enter a Webhook URL first"
+            return
+        }
+
+        button.isEnabled = false
+        statusView.visibility = View.VISIBLE
+        statusView.setTextColor(Color.parseColor("#757575"))
+        statusView.text = "Sending test…"
+
+        WebhookManager.send(
+            webhookUrl    = url,
+            secret        = secret,
+            from          = "TEST_$simLabel",
+            message       = "SMS Forwarder test message from $simLabel",
+            sentTimestamp = System.currentTimeMillis(),
+            sentTo        = sentTo,
+            deviceId      = deviceId,
+            onSuccess = {
+                runOnUiThread {
+                    button.isEnabled = true
+                    statusView.setTextColor(Color.parseColor("#388E3C"))
+                    statusView.text = "✓ Connection OK — webhook received the request"
+                }
+            },
+            onError = { error ->
+                runOnUiThread {
+                    button.isEnabled = true
+                    statusView.setTextColor(Color.parseColor("#F44336"))
+                    statusView.text = "✗ Failed: $error"
+                }
+            }
+        )
     }
 
     // ------------------------------------------------------------------ senders
