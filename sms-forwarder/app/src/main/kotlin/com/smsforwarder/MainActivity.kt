@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
-import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -70,15 +69,21 @@ class MainActivity : AppCompatActivity() {
     // ------------------------------------------------------------------ settings
 
     private fun loadSettings() {
-        binding.etWebhookUrl.setText(prefs.webhookUrl)
-        binding.etSecret.setText(prefs.secret)
-        binding.etDeviceId.setText(prefs.deviceId)
-        binding.etSim1Number.setText(prefs.sim1Number)
-        binding.etSim2Number.setText(prefs.sim2Number)
+        // SIM 1
+        binding.etSim1WebhookUrl.setText(prefs.sim1WebhookUrl)
+        binding.etSim1Secret.setText(prefs.sim1Secret)
+        binding.etSim1DeviceId.setText(prefs.sim1DeviceId)
+        binding.etSim1Phone.setText(prefs.sim1PhoneNumber)
 
-        binding.switchFilterSenders.isChecked = prefs.filterBySender
-        updateFilterUI(prefs.filterBySender)
+        // SIM 2
+        binding.etSim2WebhookUrl.setText(prefs.sim2WebhookUrl)
+        binding.etSim2Secret.setText(prefs.sim2Secret)
+        binding.etSim2DeviceId.setText(prefs.sim2DeviceId)
+        binding.etSim2Phone.setText(prefs.sim2PhoneNumber)
+
+        // Senders
         refreshSenderChips()
+        updateSenderHint()
     }
 
     private fun setupListeners() {
@@ -87,34 +92,37 @@ class MainActivity : AppCompatActivity() {
             if (isChecked) startForwarding() else stopForwarding()
         }
 
-        // Webhook settings save
-        binding.btnSaveWebhook.setOnClickListener {
-            val url = binding.etWebhookUrl.text?.toString()?.trim() ?: ""
+        // SIM 1 save
+        binding.btnSaveSim1.setOnClickListener {
+            val url = binding.etSim1WebhookUrl.text?.toString()?.trim() ?: ""
             if (url.isEmpty()) {
-                binding.tilWebhookUrl.error = "URL is required"
+                binding.tilSim1WebhookUrl.error = "URL is required"
                 return@setOnClickListener
             }
-            binding.tilWebhookUrl.error = null
-            prefs.webhookUrl = url
-            prefs.secret = binding.etSecret.text?.toString()?.trim() ?: ""
-            prefs.deviceId = binding.etDeviceId.text?.toString()?.trim() ?: ""
-            Toast.makeText(this, "Webhook settings saved", Toast.LENGTH_SHORT).show()
+            binding.tilSim1WebhookUrl.error = null
+            prefs.sim1WebhookUrl    = url
+            prefs.sim1Secret        = binding.etSim1Secret.text?.toString()?.trim() ?: ""
+            prefs.sim1DeviceId      = binding.etSim1DeviceId.text?.toString()?.trim() ?: ""
+            prefs.sim1PhoneNumber   = binding.etSim1Phone.text?.toString()?.trim() ?: ""
+            Toast.makeText(this, "SIM 1 settings saved", Toast.LENGTH_SHORT).show()
         }
 
-        // SIM numbers save
-        binding.btnSaveSim.setOnClickListener {
-            prefs.sim1Number = binding.etSim1Number.text?.toString()?.trim() ?: ""
-            prefs.sim2Number = binding.etSim2Number.text?.toString()?.trim() ?: ""
-            Toast.makeText(this, "SIM numbers saved", Toast.LENGTH_SHORT).show()
+        // SIM 2 save
+        binding.btnSaveSim2.setOnClickListener {
+            val url = binding.etSim2WebhookUrl.text?.toString()?.trim() ?: ""
+            if (url.isEmpty()) {
+                binding.tilSim2WebhookUrl.error = "URL is required"
+                return@setOnClickListener
+            }
+            binding.tilSim2WebhookUrl.error = null
+            prefs.sim2WebhookUrl    = url
+            prefs.sim2Secret        = binding.etSim2Secret.text?.toString()?.trim() ?: ""
+            prefs.sim2DeviceId      = binding.etSim2DeviceId.text?.toString()?.trim() ?: ""
+            prefs.sim2PhoneNumber   = binding.etSim2Phone.text?.toString()?.trim() ?: ""
+            Toast.makeText(this, "SIM 2 settings saved", Toast.LENGTH_SHORT).show()
         }
 
-        // Sender filter toggle
-        binding.switchFilterSenders.setOnCheckedChangeListener { _, isChecked ->
-            prefs.filterBySender = isChecked
-            updateFilterUI(isChecked)
-        }
-
-        // Add sender button
+        // Add sender
         binding.btnAddSender.setOnClickListener { addSender() }
         binding.etSenderInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) { addSender(); true } else false
@@ -135,8 +143,8 @@ class MainActivity : AppCompatActivity() {
     // ------------------------------------------------------------------ service control
 
     private fun startForwarding() {
-        if (prefs.webhookUrl.isBlank()) {
-            Toast.makeText(this, "Please set a Webhook URL first", Toast.LENGTH_LONG).show()
+        if (prefs.sim1WebhookUrl.isBlank() && prefs.sim2WebhookUrl.isBlank()) {
+            Toast.makeText(this, "Please save at least one SIM webhook URL first", Toast.LENGTH_LONG).show()
             binding.switchService.isChecked = false
             return
         }
@@ -162,8 +170,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateServiceStatusView() {
         val running = isServiceRunning()
-
-        // Temporarily detach listener to avoid feedback loop
         binding.switchService.setOnCheckedChangeListener(null)
         binding.switchService.isChecked = running
         binding.switchService.setOnCheckedChangeListener { _, isChecked ->
@@ -172,7 +178,7 @@ class MainActivity : AppCompatActivity() {
 
         if (running) {
             binding.tvServiceStatus.text = "Service Running"
-            binding.tvStatusSubtitle.text = "Forwarding SMS to webhook"
+            binding.tvStatusSubtitle.text = "Forwarding SMS to webhooks"
             binding.statusIndicator.setBackgroundResource(R.drawable.circle_green)
         } else {
             binding.tvServiceStatus.text = "Service Stopped"
@@ -189,6 +195,7 @@ class MainActivity : AppCompatActivity() {
         prefs.allowedSenders = prefs.allowedSenders.toMutableSet().apply { add(sender) }
         binding.etSenderInput.setText("")
         refreshSenderChips()
+        updateSenderHint()
     }
 
     private fun refreshSenderChips() {
@@ -200,18 +207,19 @@ class MainActivity : AppCompatActivity() {
                 setOnCloseIconClickListener {
                     prefs.allowedSenders = prefs.allowedSenders.toMutableSet().apply { remove(sender) }
                     refreshSenderChips()
+                    updateSenderHint()
                 }
             }
             binding.chipGroupSenders.addView(chip)
         }
     }
 
-    private fun updateFilterUI(enabled: Boolean) {
-        binding.layoutSenderInput.visibility = if (enabled) View.VISIBLE else View.GONE
-        binding.tvFilterHint.text = if (enabled)
-            "Filter ON — only listed senders will be forwarded"
+    private fun updateSenderHint() {
+        val count = prefs.allowedSenders.size
+        binding.tvSenderHint.text = if (count == 0)
+            "No senders added — all incoming SMS will be forwarded"
         else
-            "Filter OFF — all incoming SMS will be forwarded"
+            "$count sender(s) — only these will be forwarded"
     }
 
     // ------------------------------------------------------------------ logs
@@ -232,7 +240,7 @@ class MainActivity : AppCompatActivity() {
                     data = Uri.parse("package:$packageName")
                 })
             } else {
-                Toast.makeText(this, "Battery optimisation is already disabled ✓", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Battery optimisation already disabled ✓", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -249,11 +257,9 @@ class MainActivity : AppCompatActivity() {
                 add(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
-
         val missing = needed.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
-
         if (missing.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), PERMISSION_REQUEST_CODE)
         }

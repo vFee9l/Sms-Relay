@@ -8,26 +8,57 @@ class PreferencesManager(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    var webhookUrl: String
-        get() = prefs.getString(KEY_WEBHOOK_URL, "") ?: ""
-        set(value) { prefs.edit().putString(KEY_WEBHOOK_URL, value).apply() }
+    // ── SIM 1 webhook payload fields ──────────────────────────────────────────
 
-    var secret: String
-        get() = prefs.getString(KEY_SECRET, "STC50") ?: "STC50"
-        set(value) { prefs.edit().putString(KEY_SECRET, value).apply() }
+    var sim1WebhookUrl: String
+        get() = prefs.getString(KEY_SIM1_WEBHOOK_URL, "") ?: ""
+        set(value) { prefs.edit().putString(KEY_SIM1_WEBHOOK_URL, value).apply() }
 
-    var deviceId: String
-        get() = prefs.getString(KEY_DEVICE_ID, "6") ?: "6"
-        set(value) { prefs.edit().putString(KEY_DEVICE_ID, value).apply() }
+    var sim1Secret: String
+        get() = prefs.getString(KEY_SIM1_SECRET, "") ?: ""
+        set(value) { prefs.edit().putString(KEY_SIM1_SECRET, value).apply() }
 
-    var sim1Number: String
-        get() = prefs.getString(KEY_SIM1_NUMBER, "") ?: ""
-        set(value) { prefs.edit().putString(KEY_SIM1_NUMBER, value).apply() }
+    var sim1DeviceId: String
+        get() = prefs.getString(KEY_SIM1_DEVICE_ID, "") ?: ""
+        set(value) { prefs.edit().putString(KEY_SIM1_DEVICE_ID, value).apply() }
 
-    var sim2Number: String
-        get() = prefs.getString(KEY_SIM2_NUMBER, "") ?: ""
-        set(value) { prefs.edit().putString(KEY_SIM2_NUMBER, value).apply() }
+    var sim1PhoneNumber: String
+        get() = prefs.getString(KEY_SIM1_PHONE, "") ?: ""
+        set(value) { prefs.edit().putString(KEY_SIM1_PHONE, value).apply() }
 
+    // ── SIM 2 webhook payload fields ──────────────────────────────────────────
+
+    var sim2WebhookUrl: String
+        get() = prefs.getString(KEY_SIM2_WEBHOOK_URL, "") ?: ""
+        set(value) { prefs.edit().putString(KEY_SIM2_WEBHOOK_URL, value).apply() }
+
+    var sim2Secret: String
+        get() = prefs.getString(KEY_SIM2_SECRET, "") ?: ""
+        set(value) { prefs.edit().putString(KEY_SIM2_SECRET, value).apply() }
+
+    var sim2DeviceId: String
+        get() = prefs.getString(KEY_SIM2_DEVICE_ID, "") ?: ""
+        set(value) { prefs.edit().putString(KEY_SIM2_DEVICE_ID, value).apply() }
+
+    var sim2PhoneNumber: String
+        get() = prefs.getString(KEY_SIM2_PHONE, "") ?: ""
+        set(value) { prefs.edit().putString(KEY_SIM2_PHONE, value).apply() }
+
+    // ── Helpers: get config for a given slot ──────────────────────────────────
+
+    fun webhookUrlForSlot(slot: Int) = if (slot == 1) sim2WebhookUrl else sim1WebhookUrl
+    fun secretForSlot(slot: Int)     = if (slot == 1) sim2Secret     else sim1Secret
+    fun deviceIdForSlot(slot: Int)   = if (slot == 1) sim2DeviceId   else sim1DeviceId
+    fun phoneForSlot(slot: Int)      = if (slot == 1) sim2PhoneNumber.ifBlank { "SIM2" }
+                                                      else sim1PhoneNumber.ifBlank { "SIM1" }
+
+    // ── Shared settings ───────────────────────────────────────────────────────
+
+    /**
+     * Allowed senders list (shared across both SIMs).
+     * When non-empty, only messages from these senders are forwarded.
+     * When empty, ALL senders are forwarded.
+     */
     var allowedSenders: Set<String>
         get() = prefs.getStringSet(KEY_ALLOWED_SENDERS, emptySet()) ?: emptySet()
         set(value) { prefs.edit().putStringSet(KEY_ALLOWED_SENDERS, value).apply() }
@@ -36,16 +67,12 @@ class PreferencesManager(context: Context) {
         get() = prefs.getBoolean(KEY_FORWARDING_ENABLED, false)
         set(value) { prefs.edit().putBoolean(KEY_FORWARDING_ENABLED, value).apply() }
 
-    var filterBySender: Boolean
-        get() = prefs.getBoolean(KEY_FILTER_BY_SENDER, false)
-        set(value) { prefs.edit().putBoolean(KEY_FILTER_BY_SENDER, value).apply() }
+    // ── Activity log ──────────────────────────────────────────────────────────
 
     fun addLog(entry: String) {
         val logs = getLogs().toMutableList()
         logs.add(0, entry)
-        if (logs.size > 50) {
-            logs.subList(50, logs.size).clear()
-        }
+        if (logs.size > 50) logs.subList(50, logs.size).clear()
         prefs.edit().putString(KEY_LOGS, logs.joinToString(LOG_SEPARATOR)).apply()
     }
 
@@ -60,15 +87,20 @@ class PreferencesManager(context: Context) {
 
     companion object {
         private const val PREFS_NAME = "sms_forwarder_prefs"
-        private const val KEY_WEBHOOK_URL = "webhook_url"
-        private const val KEY_SECRET = "secret"
-        private const val KEY_DEVICE_ID = "device_id"
-        private const val KEY_SIM1_NUMBER = "sim1_number"
-        private const val KEY_SIM2_NUMBER = "sim2_number"
-        private const val KEY_ALLOWED_SENDERS = "allowed_senders"
+
+        private const val KEY_SIM1_WEBHOOK_URL = "sim1_webhook_url"
+        private const val KEY_SIM1_SECRET      = "sim1_secret"
+        private const val KEY_SIM1_DEVICE_ID   = "sim1_device_id"
+        private const val KEY_SIM1_PHONE       = "sim1_phone"
+
+        private const val KEY_SIM2_WEBHOOK_URL = "sim2_webhook_url"
+        private const val KEY_SIM2_SECRET      = "sim2_secret"
+        private const val KEY_SIM2_DEVICE_ID   = "sim2_device_id"
+        private const val KEY_SIM2_PHONE       = "sim2_phone"
+
+        private const val KEY_ALLOWED_SENDERS   = "allowed_senders"
         private const val KEY_FORWARDING_ENABLED = "forwarding_enabled"
-        private const val KEY_FILTER_BY_SENDER = "filter_by_sender"
-        private const val KEY_LOGS = "logs"
-        private const val LOG_SEPARATOR = "\n||||\n"
+        private const val KEY_LOGS              = "logs"
+        private const val LOG_SEPARATOR         = "\n||||\n"
     }
 }

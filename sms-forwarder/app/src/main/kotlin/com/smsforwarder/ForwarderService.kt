@@ -33,14 +33,13 @@ class ForwarderService : Service() {
                 return START_NOT_STICKY
             }
         }
-        // START_STICKY: Android restarts this service automatically if it's killed
+        // START_STICKY: Android will restart this service if it is killed
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "Service destroyed — broadcasting restart signal")
-        // Tell ServiceRestartReceiver to bring us back up
         sendBroadcast(Intent(ACTION_RESTART).setPackage(packageName))
     }
 
@@ -49,37 +48,52 @@ class ForwarderService : Service() {
     // ------------------------------------------------------------------ SMS handling
 
     private fun handleSms(intent: Intent) {
-        val from = intent.getStringExtra(EXTRA_FROM) ?: return
-        val message = intent.getStringExtra(EXTRA_MESSAGE) ?: return
+        val from      = intent.getStringExtra(EXTRA_FROM)      ?: return
+        val message   = intent.getStringExtra(EXTRA_MESSAGE)   ?: return
         val timestamp = intent.getLongExtra(EXTRA_TIMESTAMP, System.currentTimeMillis())
-        val sentTo = intent.getStringExtra(EXTRA_SENT_TO) ?: ""
+        val simSlot   = intent.getIntExtra(EXTRA_SIM_SLOT, 0)
 
-        val prefs = PreferencesManager(this)
+        val prefs   = PreferencesManager(this)
         val timeStr = timeFormat.format(Date(timestamp))
+        val simLabel = "SIM${simSlot + 1}"
 
-        updateNotification("Forwarding from $from …")
-        Log.d(TAG, "Forwarding SMS from $from to ${prefs.webhookUrl}")
+        // Pick the correct per-SIM webhook configuration
+        val webhookUrl = prefs.webhookUrlForSlot(simSlot)
+        val secret     = prefs.secretForSlot(simSlot)
+        val deviceId   = prefs.deviceIdForSlot(simSlot)
+        val sentTo     = prefs.phoneForSlot(simSlot)
+
+        if (webhookUrl.isBlank()) {
+            val entry = "SKIP $timeStr | $simLabel | No webhook URL configured"
+            prefs.addLog(entry)
+            Log.w(TAG, entry)
+            broadcastUiUpdate()
+            return
+        }
+
+        updateNotification("[$simLabel] Forwarding from $from …")
+        Log.d(TAG, "Forwarding — slot=$simSlot  from=$from  webhook=$webhookUrl")
 
         WebhookManager.send(
-            webhookUrl = prefs.webhookUrl,
-            secret = prefs.secret,
-            from = from,
-            message = message,
+            webhookUrl = webhookUrl,
+            secret     = secret,
+            from       = from,
+            message    = message,
             sentTimestamp = timestamp,
-            sentTo = sentTo,
-            deviceId = prefs.deviceId,
+            sentTo     = sentTo,
+            deviceId   = deviceId,
             onSuccess = {
-                val entry = "OK  $timeStr | $from → webhook"
+                val entry = "OK   $timeStr | $simLabel | $from → webhook"
                 prefs.addLog(entry)
                 Log.d(TAG, entry)
-                updateNotification("Last: $from at $timeStr ✓")
+                updateNotification("[$simLabel] Last: $from at $timeStr ✓")
                 broadcastUiUpdate()
             },
             onError = { error ->
-                val entry = "ERR $timeStr | $from | $error"
+                val entry = "ERR  $timeStr | $simLabel | $from | $error"
                 prefs.addLog(entry)
                 Log.e(TAG, entry)
-                updateNotification("Error from $from — $error")
+                updateNotification("[$simLabel] Error from $from")
                 broadcastUiUpdate()
             }
         )
@@ -138,18 +152,18 @@ class ForwarderService : Service() {
     // ------------------------------------------------------------------ companion
 
     companion object {
-        const val ACTION_FORWARD_SMS = "com.smsforwarder.FORWARD_SMS"
+        const val ACTION_FORWARD_SMS  = "com.smsforwarder.FORWARD_SMS"
         const val ACTION_STOP_SERVICE = "com.smsforwarder.STOP_SERVICE"
-        const val ACTION_RESTART = "com.smsforwarder.RESTART_SERVICE"
-        const val ACTION_UPDATE_UI = "com.smsforwarder.UPDATE_UI"
+        const val ACTION_RESTART      = "com.smsforwarder.RESTART_SERVICE"
+        const val ACTION_UPDATE_UI    = "com.smsforwarder.UPDATE_UI"
 
-        const val EXTRA_FROM = "extra_from"
-        const val EXTRA_MESSAGE = "extra_message"
+        const val EXTRA_FROM      = "extra_from"
+        const val EXTRA_MESSAGE   = "extra_message"
         const val EXTRA_TIMESTAMP = "extra_timestamp"
-        const val EXTRA_SENT_TO = "extra_sent_to"
+        const val EXTRA_SIM_SLOT  = "extra_sim_slot"
 
         private const val NOTIFICATION_ID = 1001
-        private const val CHANNEL_ID = "sms_forwarder_channel"
-        private const val TAG = "ForwarderService"
+        private const val CHANNEL_ID      = "sms_forwarder_channel"
+        private const val TAG             = "ForwarderService"
     }
 }

@@ -19,16 +19,10 @@ class SmsReceiver : BroadcastReceiver() {
             return
         }
 
-        // --- Dual SIM: read subscription ID from the SMS intent ---
+        // --- Dual SIM: detect which SIM slot received this message ---
         val subscriptionId = getSubscriptionId(intent)
         val simSlot = getSimSlotIndex(context, subscriptionId)
-
-        // Map SIM slot to the configured phone number (used as sent_to)
-        val sentTo: String = when (simSlot) {
-            0 -> prefs.sim1Number.ifBlank { "SIM1" }
-            1 -> prefs.sim2Number.ifBlank { "SIM2" }
-            else -> prefs.sim1Number.ifBlank { "Unknown" }
-        }
+        Log.d(TAG, "SMS intent — subscriptionId=$subscriptionId  simSlot=$simSlot")
 
         // --- Parse the SMS messages ---
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
@@ -42,22 +36,20 @@ class SmsReceiver : BroadcastReceiver() {
             return
         }
 
-        // Concatenate multi-part SMS bodies
+        // Concatenate multi-part SMS bodies into one string
         val body = messages.joinToString("") { it.messageBody ?: "" }
         val timestamp = messages[0].timestampMillis
 
-        Log.d(TAG, "SMS received — from=$from  simSlot=$simSlot  sentTo=$sentTo  len=${body.length}")
+        Log.d(TAG, "SMS from=$from  simSlot=$simSlot  len=${body.length}")
 
-        // --- Allowed sender filter ---
-        if (prefs.filterBySender) {
-            val allowed = prefs.allowedSenders
-            if (allowed.isNotEmpty()) {
-                val normalizedFrom = from.trim()
-                val match = allowed.any { it.trim().equals(normalizedFrom, ignoreCase = true) }
-                if (!match) {
-                    Log.d(TAG, "Sender '$from' not in allowed list — skipping")
-                    return
-                }
+        // --- Allowed sender filter (always active when list is non-empty) ---
+        val allowed = prefs.allowedSenders
+        if (allowed.isNotEmpty()) {
+            val normalizedFrom = from.trim()
+            val match = allowed.any { it.trim().equals(normalizedFrom, ignoreCase = true) }
+            if (!match) {
+                Log.d(TAG, "Sender '$from' not in allowed list — skipping")
+                return
             }
         }
 
@@ -67,7 +59,7 @@ class SmsReceiver : BroadcastReceiver() {
             putExtra(ForwarderService.EXTRA_FROM, from)
             putExtra(ForwarderService.EXTRA_MESSAGE, body)
             putExtra(ForwarderService.EXTRA_TIMESTAMP, timestamp)
-            putExtra(ForwarderService.EXTRA_SENT_TO, sentTo)
+            putExtra(ForwarderService.EXTRA_SIM_SLOT, simSlot)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -77,8 +69,9 @@ class SmsReceiver : BroadcastReceiver() {
         }
     }
 
+    // --- subscription ID helpers ---
+
     private fun getSubscriptionId(intent: Intent): Int {
-        // Different OEMs use different extras for subscription ID
         var subId = intent.getIntExtra("subscription", -1)
         if (subId == -1) subId = intent.getIntExtra("android.telephony.extra.SUBSCRIPTION_INDEX", -1)
         if (subId == -1) subId = intent.getIntExtra("slot", -1)
