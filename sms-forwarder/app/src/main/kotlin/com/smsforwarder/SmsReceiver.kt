@@ -14,8 +14,10 @@ class SmsReceiver : BroadcastReceiver() {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
 
         val prefs = PreferencesManager(context)
+
+        // Global service toggle — if service is off, ignore everything
         if (!prefs.isForwardingEnabled) {
-            Log.d(TAG, "Forwarding disabled — ignoring incoming SMS")
+            Log.d(TAG, "Forwarding disabled globally — ignoring incoming SMS")
             return
         }
 
@@ -23,6 +25,12 @@ class SmsReceiver : BroadcastReceiver() {
         val subscriptionId = getSubscriptionId(intent)
         val simSlot = getSimSlotIndex(context, subscriptionId)
         Log.d(TAG, "SMS intent — subscriptionId=$subscriptionId  simSlot=$simSlot")
+
+        // Per-SIM activation check
+        if (!prefs.isSimEnabled(simSlot)) {
+            Log.d(TAG, "SIM slot $simSlot is disabled — ignoring SMS")
+            return
+        }
 
         // --- Parse the SMS messages ---
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
@@ -42,13 +50,13 @@ class SmsReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "SMS from=$from  simSlot=$simSlot  len=${body.length}")
 
-        // --- Allowed sender filter (always active when list is non-empty) ---
-        val allowed = prefs.allowedSenders
+        // Per-SIM allowed sender filter (active when list is non-empty)
+        val allowed = prefs.allowedSendersForSlot(simSlot)
         if (allowed.isNotEmpty()) {
             val normalizedFrom = from.trim()
             val match = allowed.any { it.trim().equals(normalizedFrom, ignoreCase = true) }
             if (!match) {
-                Log.d(TAG, "Sender '$from' not in allowed list — skipping")
+                Log.d(TAG, "Sender '$from' not in SIM${simSlot + 1} allowed list — skipping")
                 return
             }
         }

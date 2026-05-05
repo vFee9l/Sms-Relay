@@ -74,26 +74,37 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadSettings() {
         // SIM 1
+        binding.switchSim1Enabled.isChecked = prefs.sim1Enabled
         binding.etSim1WebhookUrl.setText(prefs.sim1WebhookUrl)
         binding.etSim1Secret.setText(prefs.sim1Secret)
         binding.etSim1DeviceId.setText(prefs.sim1DeviceId)
         binding.etSim1Phone.setText(prefs.sim1PhoneNumber)
+        refreshSim1SenderChips()
+        updateSim1SenderHint()
 
         // SIM 2
+        binding.switchSim2Enabled.isChecked = prefs.sim2Enabled
         binding.etSim2WebhookUrl.setText(prefs.sim2WebhookUrl)
         binding.etSim2Secret.setText(prefs.sim2Secret)
         binding.etSim2DeviceId.setText(prefs.sim2DeviceId)
         binding.etSim2Phone.setText(prefs.sim2PhoneNumber)
-
-        // Senders
-        refreshSenderChips()
-        updateSenderHint()
+        refreshSim2SenderChips()
+        updateSim2SenderHint()
     }
 
     private fun setupListeners() {
-        // Service toggle
+        // Global service toggle
         binding.switchService.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) startForwarding() else stopForwarding()
+        }
+
+        // ── SIM 1 ──────────────────────────────────────────────────────────────
+
+        // Per-SIM enable toggle
+        binding.switchSim1Enabled.setOnCheckedChangeListener { _, isChecked ->
+            prefs.sim1Enabled = isChecked
+            val state = if (isChecked) "enabled" else "disabled"
+            Toast.makeText(this, "SIM 1 forwarding $state", Toast.LENGTH_SHORT).show()
         }
 
         // SIM 1 save
@@ -114,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         // SIM 1 test
         binding.btnTestSim1.setOnClickListener {
             testConnection(
-                button    = binding.btnTestSim1,
+                button     = binding.btnTestSim1,
                 statusView = binding.tvTestSim1Result,
                 url        = binding.etSim1WebhookUrl.text?.toString()?.trim() ?: "",
                 secret     = binding.etSim1Secret.text?.toString()?.trim() ?: "",
@@ -122,6 +133,21 @@ class MainActivity : AppCompatActivity() {
                 sentTo     = binding.etSim1Phone.text?.toString()?.trim() ?: "SIM1",
                 simLabel   = "SIM1"
             )
+        }
+
+        // SIM 1 senders
+        binding.btnAddSim1Sender.setOnClickListener { addSim1Sender() }
+        binding.etSim1SenderInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) { addSim1Sender(); true } else false
+        }
+
+        // ── SIM 2 ──────────────────────────────────────────────────────────────
+
+        // Per-SIM enable toggle
+        binding.switchSim2Enabled.setOnCheckedChangeListener { _, isChecked ->
+            prefs.sim2Enabled = isChecked
+            val state = if (isChecked) "enabled" else "disabled"
+            Toast.makeText(this, "SIM 2 forwarding $state", Toast.LENGTH_SHORT).show()
         }
 
         // SIM 2 save
@@ -152,10 +178,10 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        // Add sender
-        binding.btnAddSender.setOnClickListener { addSender() }
-        binding.etSenderInput.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) { addSender(); true } else false
+        // SIM 2 senders
+        binding.btnAddSim2Sender.setOnClickListener { addSim2Sender() }
+        binding.etSim2SenderInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) { addSim2Sender(); true } else false
         }
 
         // Clear logs
@@ -244,7 +270,7 @@ class MainActivity : AppCompatActivity() {
             webhookUrl    = url,
             secret        = secret,
             from          = "TEST_$simLabel",
-            message       = "SMS Forwarder test message from $simLabel",
+            message       = "T2-SMS-forwarding test message from $simLabel",
             sentTimestamp = System.currentTimeMillis(),
             sentTo        = sentTo,
             deviceId      = deviceId,
@@ -265,39 +291,74 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // ------------------------------------------------------------------ senders
+    // ------------------------------------------------------------------ SIM 1 senders
 
-    private fun addSender() {
-        val sender = binding.etSenderInput.text?.toString()?.trim() ?: return
+    private fun addSim1Sender() {
+        val sender = binding.etSim1SenderInput.text?.toString()?.trim() ?: return
         if (sender.isEmpty()) return
-        prefs.allowedSenders = prefs.allowedSenders.toMutableSet().apply { add(sender) }
-        binding.etSenderInput.setText("")
-        refreshSenderChips()
-        updateSenderHint()
+        prefs.sim1AllowedSenders = prefs.sim1AllowedSenders.toMutableSet().apply { add(sender) }
+        binding.etSim1SenderInput.setText("")
+        refreshSim1SenderChips()
+        updateSim1SenderHint()
     }
 
-    private fun refreshSenderChips() {
-        binding.chipGroupSenders.removeAllViews()
-        prefs.allowedSenders.forEach { sender ->
+    private fun refreshSim1SenderChips() {
+        binding.chipGroupSim1Senders.removeAllViews()
+        prefs.sim1AllowedSenders.forEach { sender ->
             val chip = Chip(this).apply {
                 text = sender
                 isCloseIconVisible = true
                 setOnCloseIconClickListener {
-                    prefs.allowedSenders = prefs.allowedSenders.toMutableSet().apply { remove(sender) }
-                    refreshSenderChips()
-                    updateSenderHint()
+                    prefs.sim1AllowedSenders = prefs.sim1AllowedSenders.toMutableSet().apply { remove(sender) }
+                    refreshSim1SenderChips()
+                    updateSim1SenderHint()
                 }
             }
-            binding.chipGroupSenders.addView(chip)
+            binding.chipGroupSim1Senders.addView(chip)
         }
     }
 
-    private fun updateSenderHint() {
-        val count = prefs.allowedSenders.size
-        binding.tvSenderHint.text = if (count == 0)
-            "No senders added — all incoming SMS will be forwarded"
+    private fun updateSim1SenderHint() {
+        val count = prefs.sim1AllowedSenders.size
+        binding.tvSim1SenderHint.text = if (count == 0)
+            "No filter — all senders forwarded on SIM 1"
         else
-            "$count sender(s) — only these will be forwarded"
+            "$count sender(s) — only these forwarded on SIM 1"
+    }
+
+    // ------------------------------------------------------------------ SIM 2 senders
+
+    private fun addSim2Sender() {
+        val sender = binding.etSim2SenderInput.text?.toString()?.trim() ?: return
+        if (sender.isEmpty()) return
+        prefs.sim2AllowedSenders = prefs.sim2AllowedSenders.toMutableSet().apply { add(sender) }
+        binding.etSim2SenderInput.setText("")
+        refreshSim2SenderChips()
+        updateSim2SenderHint()
+    }
+
+    private fun refreshSim2SenderChips() {
+        binding.chipGroupSim2Senders.removeAllViews()
+        prefs.sim2AllowedSenders.forEach { sender ->
+            val chip = Chip(this).apply {
+                text = sender
+                isCloseIconVisible = true
+                setOnCloseIconClickListener {
+                    prefs.sim2AllowedSenders = prefs.sim2AllowedSenders.toMutableSet().apply { remove(sender) }
+                    refreshSim2SenderChips()
+                    updateSim2SenderHint()
+                }
+            }
+            binding.chipGroupSim2Senders.addView(chip)
+        }
+    }
+
+    private fun updateSim2SenderHint() {
+        val count = prefs.sim2AllowedSenders.size
+        binding.tvSim2SenderHint.text = if (count == 0)
+            "No filter — all senders forwarded on SIM 2"
+        else
+            "$count sender(s) — only these forwarded on SIM 2"
     }
 
     // ------------------------------------------------------------------ logs
