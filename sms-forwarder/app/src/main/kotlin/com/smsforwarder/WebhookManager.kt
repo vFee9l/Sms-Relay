@@ -4,11 +4,9 @@ import android.util.Log
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
 import java.io.IOException
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -26,79 +24,67 @@ object WebhookManager {
         .build()
 
     private val trustAllClient: OkHttpClient by lazy {
-        val trustAll = arrayOf<TrustManager>(object : X509TrustManager {
-            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
-            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+        val tm = arrayOf<TrustManager>(object : X509TrustManager {
+            override fun checkClientTrusted(c: Array<X509Certificate>, a: String) {}
+            override fun checkServerTrusted(c: Array<X509Certificate>, a: String) {}
             override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
         })
-        val sslCtx = SSLContext.getInstance("TLS").apply {
-            init(null, trustAll, SecureRandom())
-        }
+        val ctx = SSLContext.getInstance("TLS").apply { init(null, tm, SecureRandom()) }
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
-            .sslSocketFactory(sslCtx.socketFactory, trustAll[0] as X509TrustManager)
+            .sslSocketFactory(ctx.socketFactory, tm[0] as X509TrustManager)
             .hostnameVerifier { _, _ -> true }
             .build()
     }
 
     /**
-     * Send an SMS payload to the configured webhook.
+     * Sends an HTTP POST to [webhookUrl].
      *
-     * @param customHeaders   Extra HTTP headers to add to the request (merged with defaults).
-     * @param extraBody       Extra fields appended to the JSON body.
-     * @param disableSsl      When true, SSL certificate validation is skipped (self-signed certs).
+     * The [bodyTemplate] is a raw JSON string that may contain the placeholders:
+     *   %from%          → replaced with the sender's phone number / name
+     *   %text%          → replaced with the SMS message body
+     *   %receivedStamp% → replaced with the received epoch timestamp (ms, no quotes in JSON)
+     *
+     * Custom headers are merged on top of the default Content-Type / Accept headers.
      */
     fun send(
         webhookUrl: String,
-        secret: String,
+        bodyTemplate: String,
         from: String,
         message: String,
         sentTimestamp: Long,
-        sentTo: String,
-        deviceId: String,
         customHeaders: Map<String, String> = emptyMap(),
-        extraBody: Map<String, String> = emptyMap(),
         disableSsl: Boolean = false,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        if (webhookUrl.isBlank()) {
-            onError("Webhook URL is not configured")
-            return
-        }
+        if (webhookUrl.isBlank()) { onError("Webhook URL is not configured"); return }
 
-        // Build JSON body — standard fields first, then extra fields
-        val payload = JSONObject().apply {
-            put("secret", secret)
-            put("from", from)
-            put("message", message)
-            put("sent_timestamp", sentTimestamp)
-            put("sent_to", sentTo)
-            put("message_id", UUID.randomUUID().toString())
-            put("device_id", deviceId)
-            extraBody.forEach { (k, v) -> put(k, v) }
-        }
+        // Substitute placeholders — escape values for JSON safety
+        val resolvedBody = bodyTemplate
+            .replace("%from%",          escapeJson(from))
+            .replace("%text%",          escapeJson(message))
+            .replace("%receivedStamp%", sentTimestamp.toString())
 
-        Log.d(TAG, "→ $webhookUrl  ssl_skip=$disableSsl  extra_headers=${customHeaders.keys}  extra_body=${extraBody.keys}")
+        Log.d(TAG, "POST → $webhookUrl  ssl_skip=$disableSsl")
 
-        // Build request — default headers first, then custom headers override
         val reqBuilder = Request.Builder()
             .url(webhookUrl)
-            .post(payload.toString().toRequestBody(JSON_TYPE))
-            .addHeader("Content-Type", "application/json")
-            .addHeader("Accept", "application/json")
-            .addHeader("User-Agent", "T2-SMS-forwarding/1.0")
+            .post(resolvedBody.toRequestBody(JSON_TYPE))
+            .header("Content-Type", "application/json")
+            .header("Accept",       "application/json")
+            .header("User-Agent",   "T2-SMS-forwarding/1.0")
 
-        customHeaders.forEach { (key, value) -> reqBuilder.header(key, value) }
+        customHeaders.forEach { (k, v) -> reqBuilder.header(k, v) }
 
         val client = if (disableSsl) trustAllClient else defaultClient
 
         client.newCall(reqBuilder.build()).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(TAG, "Request failed: ${e.message}", e)
+                Log.e(TAG, "Request failed: ${e.message}")
                 onError(e.message ?: "Network error")
             }
 
@@ -116,6 +102,14 @@ object WebhookManager {
             }
         })
     }
+
+    /** Escapes a value so it is safe to embed inside a JSON string literal. */
+    private fun escapeJson(v: String): String = v
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
 
     private const val TAG = "WebhookManager"
 }

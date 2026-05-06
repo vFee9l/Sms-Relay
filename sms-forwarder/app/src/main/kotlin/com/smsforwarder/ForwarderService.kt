@@ -19,7 +19,6 @@ class ForwarderService : Service() {
         createNotificationChannel()
         startForeground(NOTIF_ID, buildNotification("Running — waiting for SMS"))
         PreferencesManager(this).addSyslog("[SERVICE] Started")
-        Log.d(TAG, "Service created")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -27,8 +26,7 @@ class ForwarderService : Service() {
             ACTION_FORWARD_SMS  -> handleSms(intent)
             ACTION_STOP_SERVICE -> {
                 PreferencesManager(this).addSyslog("[SERVICE] Stopped by user")
-                stopForeground(true)
-                stopSelf()
+                stopForeground(true); stopSelf()
                 return START_NOT_STICKY
             }
         }
@@ -43,59 +41,54 @@ class ForwarderService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    // ───────────────────────────────────────────── SMS handling
+    // ─────────────────────────────────────────── handling
 
     private fun handleSms(intent: Intent) {
-        val from       = intent.getStringExtra(EXTRA_FROM)       ?: return
-        val message    = intent.getStringExtra(EXTRA_MESSAGE)    ?: return
-        val timestamp  = intent.getLongExtra(EXTRA_TIMESTAMP, System.currentTimeMillis())
-        val simSlot    = intent.getIntExtra(EXTRA_SIM_SLOT, 0)
-        val webhookId  = intent.getStringExtra(EXTRA_WEBHOOK_ID) ?: return
+        val from      = intent.getStringExtra(EXTRA_FROM)       ?: return
+        val message   = intent.getStringExtra(EXTRA_MESSAGE)    ?: return
+        val timestamp = intent.getLongExtra(EXTRA_TIMESTAMP, System.currentTimeMillis())
+        val simSlot   = intent.getIntExtra(EXTRA_SIM_SLOT, 0)
+        val webhookId = intent.getStringExtra(EXTRA_WEBHOOK_ID) ?: return
 
         val prefs   = PreferencesManager(this)
-        val repo    = WebhookRepository(this)
-        val webhook = repo.findById(webhookId) ?: run {
+        val webhook = WebhookRepository(this).findById(webhookId) ?: run {
             Log.w(TAG, "Webhook $webhookId not found — skipping")
             return
         }
 
         val timeStr = timeFmt.format(Date(timestamp))
-        val sim     = "SIM${simSlot + 1}"
+        val sim     = webhook.simLabel
 
         updateNotification("[${webhook.name}] Forwarding from $from …")
 
         WebhookManager.send(
             webhookUrl    = webhook.url,
-            secret        = webhook.secret,
+            bodyTemplate  = webhook.bodyTemplate,
             from          = from,
             message       = message,
             sentTimestamp = timestamp,
-            sentTo        = webhook.phone.ifBlank { sim },
-            deviceId      = webhook.deviceId,
             customHeaders = webhook.customHeaders,
-            extraBody     = webhook.extraBody,
             disableSsl    = webhook.disableSsl,
             onSuccess = {
-                val entry = "OK   $timeStr | $sim | ${webhook.name} | $from"
+                val entry = "OK   $timeStr | $sim | ${webhook.name} | from: $from"
                 prefs.addLog(entry)
-                updateNotification("[${webhook.name}] Last: $from at $timeStr ✓")
+                updateNotification("[${webhook.name}] ✓ $from at $timeStr")
                 broadcastUi()
             },
             onError = { err ->
-                val entry = "ERR  $timeStr | $sim | ${webhook.name} | $from | $err"
+                val entry = "ERR  $timeStr | $sim | ${webhook.name} | from: $from | $err"
                 prefs.addLog(entry)
-                updateNotification("[${webhook.name}] Error from $from")
+                updateNotification("[${webhook.name}] ✗ Error from $from")
                 broadcastUi()
             }
         )
     }
 
-    // ───────────────────────────────────────────── notification
+    // ─────────────────────────────────────────── notification
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val ch = NotificationChannel(CHANNEL_ID, "T2-SMS-forwarding", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "SMS forwarding persistent service"
                 setShowBadge(false)
             }
             getSystemService(NotificationManager::class.java).createNotificationChannel(ch)
@@ -109,7 +102,6 @@ class ForwarderService : Service() {
         val stop = PendingIntent.getService(this, 1,
             Intent(this, ForwarderService::class.java).apply { action = ACTION_STOP_SERVICE },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("T2-SMS-forwarding")
             .setContentText(status)
@@ -117,14 +109,11 @@ class ForwarderService : Service() {
             .setContentIntent(open)
             .addAction(android.R.drawable.ic_delete, "Stop", stop)
             .setOngoing(true).setSilent(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
+            .setPriority(NotificationCompat.PRIORITY_LOW).build()
     }
 
-    private fun updateNotification(status: String) {
-        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-            .notify(NOTIF_ID, buildNotification(status))
-    }
+    private fun updateNotification(s: String) =
+        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(NOTIF_ID, buildNotification(s))
 
     private fun broadcastUi() = sendBroadcast(Intent(ACTION_UPDATE_UI).setPackage(packageName))
 
@@ -134,11 +123,11 @@ class ForwarderService : Service() {
         const val ACTION_RESTART      = "com.smsforwarder.RESTART_SERVICE"
         const val ACTION_UPDATE_UI    = "com.smsforwarder.UPDATE_UI"
 
-        const val EXTRA_FROM        = "extra_from"
-        const val EXTRA_MESSAGE     = "extra_message"
-        const val EXTRA_TIMESTAMP   = "extra_timestamp"
-        const val EXTRA_SIM_SLOT    = "extra_sim_slot"
-        const val EXTRA_WEBHOOK_ID  = "extra_webhook_id"
+        const val EXTRA_FROM       = "extra_from"
+        const val EXTRA_MESSAGE    = "extra_message"
+        const val EXTRA_TIMESTAMP  = "extra_timestamp"
+        const val EXTRA_SIM_SLOT   = "extra_sim_slot"
+        const val EXTRA_WEBHOOK_ID = "extra_webhook_id"
 
         private const val NOTIF_ID   = 1001
         private const val CHANNEL_ID = "t2_sms_channel"

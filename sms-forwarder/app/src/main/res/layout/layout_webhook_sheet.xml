@@ -6,25 +6,24 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <!-- Sheet handle -->
+    <!-- Drag handle -->
     <View
         android:layout_width="40dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="10dp"
-        android:layout_marginBottom="4dp"
-        android:background="#DADADA"
-        android:backgroundTint="#DADADA" />
+        android:layout_marginBottom="6dp"
+        android:background="#DADADA" />
 
-    <!-- Header -->
+    <!-- Title row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:paddingStart="20dp"
         android:paddingEnd="8dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="12dp"
         android:orientation="horizontal">
 
         <TextView
@@ -33,8 +32,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="New Webhook"
-            android:textColor="#1A1A2E"
-            android:textSize="18sp"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
@@ -43,7 +42,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Delete"
-            android:textColor="#DC2626"
+            android:textColor="@color/red"
             android:visibility="gone" />
 
     </LinearLayout>
@@ -51,8 +50,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#F0F2F5"
-        android:layout_marginBottom="4dp" />
+        android:background="@color/divider" />
 
     <!-- Scrollable content -->
     <androidx.core.widget.NestedScrollView
@@ -65,26 +63,16 @@
             android:orientation="vertical"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="24dp">
+            android:paddingTop="20dp"
+            android:paddingBottom="32dp">
 
-            <!-- ─── Section: Basic Info ─────────────────────── -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="BASIC INFO"
-                android:textColor="#1565C0"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
-
+            <!-- ── Webhook Name ── -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:hint="Webhook name">
+                android:layout_marginBottom="16dp"
+                android:hint="Webhook name (e.g. My Server)">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etName"
                     android:layout_width="match_parent"
@@ -94,13 +82,61 @@
                     android:singleLine="true" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- ── SIM Selection ── -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="SIM CARD"
+                android:textColor="@color/primary"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleGroupSim"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSim1"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:text="SIM 1" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSim2"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:text="SIM 2" />
+
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <!-- ── Webhook URL ── -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="WEBHOOK URL"
+                android:textColor="@color/primary"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilUrl"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:hint="Webhook URL (http:// or https://)">
+                android:layout_marginBottom="20dp"
+                android:hint="http:// or https://…">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etUrl"
                     android:layout_width="match_parent"
@@ -110,184 +146,65 @@
                     android:singleLine="true" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:hint="Secret key (optional)">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etSecret"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:imeOptions="actionNext"
-                    android:inputType="text"
-                    android:singleLine="true" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:hint="Device ID">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etDeviceId"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionNext"
-                        android:inputType="text"
-                        android:singleLine="true" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:hint="Phone number">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etPhone"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionDone"
-                        android:inputType="phone"
-                        android:singleLine="true" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
-
-            <!-- ─── Section: SIM Filter ────────────────────── -->
-            <View android:layout_width="match_parent" android:layout_height="1dp"
-                android:layout_marginTop="20dp" android:layout_marginBottom="16dp"
-                android:background="#E5E7EB" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="SIM FILTER"
-                android:textColor="#1565C0"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="Which SIM card should trigger this webhook?"
-                android:textColor="#6B7280"
-                android:textSize="12sp" />
-
-            <RadioGroup
-                android:id="@+id/radioGroupSim"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <com.google.android.material.radiobutton.MaterialRadioButton
-                    android:id="@+id/radioSimAny"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:checked="true"
-                    android:text="Any SIM" />
-
-                <com.google.android.material.radiobutton.MaterialRadioButton
-                    android:id="@+id/radioSim1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="SIM 1" />
-
-                <com.google.android.material.radiobutton.MaterialRadioButton
-                    android:id="@+id/radioSim2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="SIM 2" />
-
-            </RadioGroup>
-
-            <!-- ─── Section: Allowed Senders ──────────────── -->
-            <View android:layout_width="match_parent" android:layout_height="1dp"
-                android:layout_marginTop="20dp" android:layout_marginBottom="16dp"
-                android:background="#E5E7EB" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:text="ALLOWED SENDERS"
-                android:textColor="#1565C0"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
-
-            <TextView
-                android:id="@+id/tvSenderHint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="No filter — all senders forwarded"
-                android:textColor="#6B7280"
-                android:textSize="12sp" />
-
+            <!-- ── Request Body ── -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
+                android:layout_marginBottom="8dp"
                 android:orientation="horizontal">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:hint="Phone no. or sender name">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etSender"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionDone"
-                        android:inputType="text"
-                        android:singleLine="true" />
-                </com.google.android.material.textfield.TextInputLayout>
+                    android:text="REQUEST BODY (JSON)"
+                    android:textColor="@color/primary"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddSender"
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Add" />
+                    android:background="#EFF6FF"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:text="%from%  %text%  %receivedStamp%"
+                    android:textColor="@color/primary"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace" />
 
             </LinearLayout>
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupSenders"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" />
+                android:layout_marginBottom="20dp"
+                android:hint="JSON body">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine"
+                    android:lines="9"
+                    android:minLines="6"
+                    android:scrollbars="vertical"
+                    android:textSize="12sp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- ─── Section: Request Headers ──────────────── -->
-            <View android:layout_width="match_parent" android:layout_height="1dp"
-                android:layout_marginTop="20dp" android:layout_marginBottom="16dp"
-                android:background="#E5E7EB" />
-
+            <!-- ── Custom Headers ── -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:text="CUSTOM REQUEST HEADERS"
-                android:textColor="#1565C0"
+                android:layout_marginBottom="6dp"
+                android:text="CUSTOM HEADERS (OPTIONAL)"
+                android:textColor="@color/primary"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.1" />
@@ -296,8 +213,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="Added to every HTTP request (e.g. Authorization: Bearer …)"
-                android:textColor="#6B7280"
+                android:text="Added to every HTTP request, e.g. Authorization: Bearer …"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
             <LinearLayout
@@ -312,7 +229,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="4dp"
-                    android:hint="Name">
+                    android:hint="Header name">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etHeaderKey"
                         android:layout_width="match_parent"
@@ -343,6 +260,7 @@
                     android:id="@+id/btnAddHeader"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
                     android:text="Add" />
 
             </LinearLayout>
@@ -351,104 +269,22 @@
                 android:id="@+id/chipGroupHeaders"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" />
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="20dp" />
 
-            <!-- ─── Section: Extra Body Fields ────────────── -->
-            <View android:layout_width="match_parent" android:layout_height="1dp"
-                android:layout_marginTop="20dp" android:layout_marginBottom="16dp"
-                android:background="#E5E7EB" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:text="EXTRA BODY FIELDS"
-                android:textColor="#1565C0"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="Extra key-value pairs appended to the JSON body"
-                android:textColor="#6B7280"
-                android:textSize="12sp" />
+            <!-- ── SSL ── -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="16dp"
+                android:background="@color/divider" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:hint="Field">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etBodyKey"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionNext"
-                        android:inputType="text"
-                        android:singleLine="true" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginEnd="8dp"
-                    android:hint="Value">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etBodyValue"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionDone"
-                        android:inputType="text"
-                        android:singleLine="true" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddBody"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Add" />
-
-            </LinearLayout>
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupBody"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" />
-
-            <!-- ─── Section: Security ─────────────────────── -->
-            <View android:layout_width="match_parent" android:layout_height="1dp"
-                android:layout_marginTop="20dp" android:layout_marginBottom="16dp"
-                android:background="#E5E7EB" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="SECURITY"
-                android:textColor="#1565C0"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -460,14 +296,15 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Disable SSL verification"
-                        android:textColor="#1A1A2E"
-                        android:textSize="14sp" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Allow self-signed / expired certificates"
-                        android:textColor="#6B7280"
+                        android:text="Allow self-signed or expired certificates"
+                        android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
                 </LinearLayout>
@@ -479,16 +316,12 @@
 
             </LinearLayout>
 
-            <!-- ─── Test connection ───────────────────────── -->
-            <View android:layout_width="match_parent" android:layout_height="1dp"
-                android:layout_marginTop="20dp" android:layout_marginBottom="16dp"
-                android:background="#E5E7EB" />
-
+            <!-- ── Test Connection ── -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTest"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="52dp"
                 android:layout_marginBottom="8dp"
                 android:text="Test Connection" />
 
@@ -501,12 +334,13 @@
                 android:textSize="12sp"
                 android:visibility="gone" />
 
-            <!-- ─── Save button ───────────────────────────── -->
+            <!-- ── Save ── -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Save Webhook" />
+                android:layout_height="52dp"
+                android:text="Save Webhook"
+                android:textSize="15sp" />
 
         </LinearLayout>
 
