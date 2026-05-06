@@ -12,76 +12,84 @@ import java.util.*
 
 class ForwarderService : Service() {
 
-    private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+    private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
-    // ------------------------------------------------------------------ lifecycle
+    // ────────────────────────────────────────────────────── lifecycle
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification("Running — waiting for SMS"))
         Log.d(TAG, "Service created")
+        PreferencesManager(this).addSyslog("[SERVICE] Started — T2-SMS-forwarding is running")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_FORWARD_SMS -> handleSms(intent)
+            ACTION_FORWARD_SMS  -> handleSms(intent)
             ACTION_STOP_SERVICE -> {
                 Log.d(TAG, "Stop requested by user")
+                PreferencesManager(this).addSyslog("[SERVICE] Stopped by user")
                 stopForeground(true)
                 stopSelf()
                 return START_NOT_STICKY
             }
         }
-        // START_STICKY: Android will restart this service if it is killed
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "Service destroyed — broadcasting restart signal")
+        PreferencesManager(this).addSyslog("[SERVICE] Process destroyed — scheduling restart")
         sendBroadcast(Intent(ACTION_RESTART).setPackage(packageName))
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    // ------------------------------------------------------------------ SMS handling
+    // ────────────────────────────────────────────────────── SMS handling
 
     private fun handleSms(intent: Intent) {
-        val from      = intent.getStringExtra(EXTRA_FROM)      ?: return
-        val message   = intent.getStringExtra(EXTRA_MESSAGE)   ?: return
+        val from      = intent.getStringExtra(EXTRA_FROM)    ?: return
+        val message   = intent.getStringExtra(EXTRA_MESSAGE) ?: return
         val timestamp = intent.getLongExtra(EXTRA_TIMESTAMP, System.currentTimeMillis())
         val simSlot   = intent.getIntExtra(EXTRA_SIM_SLOT, 0)
+        val simLabel  = "SIM${simSlot + 1}"
 
-        val prefs   = PreferencesManager(this)
-        val timeStr = timeFormat.format(Date(timestamp))
-        val simLabel = "SIM${simSlot + 1}"
+        val prefs     = PreferencesManager(this)
+        val timeStr   = timeFmt.format(Date(timestamp))
 
-        // Pick the correct per-SIM webhook configuration
-        val webhookUrl = prefs.webhookUrlForSlot(simSlot)
-        val secret     = prefs.secretForSlot(simSlot)
-        val deviceId   = prefs.deviceIdForSlot(simSlot)
-        val sentTo     = prefs.phoneForSlot(simSlot)
+        val webhookUrl    = prefs.webhookUrlForSlot(simSlot)
+        val secret        = prefs.secretForSlot(simSlot)
+        val deviceId      = prefs.deviceIdForSlot(simSlot)
+        val sentTo        = prefs.phoneForSlot(simSlot)
+        val customHeaders = PreferencesManager.parseKvSet(prefs.customHeadersForSlot(simSlot))
+        val extraBody     = PreferencesManager.parseKvSet(prefs.extraBodyForSlot(simSlot))
+        val disableSsl    = prefs.disableSslForSlot(simSlot)
 
         if (webhookUrl.isBlank()) {
             val entry = "SKIP $timeStr | $simLabel | No webhook URL configured"
             prefs.addLog(entry)
+            prefs.addSyslog("[SKIP] $simLabel — no webhook URL, message from $from dropped")
             Log.w(TAG, entry)
             broadcastUiUpdate()
             return
         }
 
         updateNotification("[$simLabel] Forwarding from $from …")
-        Log.d(TAG, "Forwarding — slot=$simSlot  from=$from  webhook=$webhookUrl")
+        Log.d(TAG, "Forwarding — slot=$simSlot  from=$from  ssl_skip=$disableSsl")
 
         WebhookManager.send(
-            webhookUrl = webhookUrl,
-            secret     = secret,
-            from       = from,
-            message    = message,
+            webhookUrl    = webhookUrl,
+            secret        = secret,
+            from          = from,
+            message       = message,
             sentTimestamp = timestamp,
-            sentTo     = sentTo,
-            deviceId   = deviceId,
+            sentTo        = sentTo,
+            deviceId      = deviceId,
+            customHeaders = customHeaders,
+            extraBody     = extraBody,
+            disableSsl    = disableSsl,
             onSuccess = {
                 val entry = "OK   $timeStr | $simLabel | $from → webhook"
                 prefs.addLog(entry)
@@ -99,16 +107,16 @@ class ForwarderService : Service() {
         )
     }
 
-    // ------------------------------------------------------------------ notification
+    // ────────────────────────────────────────────────────── notification
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "SMS Forwarder",
+                "T2-SMS-forwarding",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "SMS Forwarding persistent service"
+                description = "SMS forwarding persistent service"
                 setShowBadge(false)
             }
             getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
@@ -118,9 +126,7 @@ class ForwarderService : Service() {
     private fun buildNotification(status: String): Notification {
         val openIntent = PendingIntent.getActivity(
             this, 0,
-            Intent(this, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-            },
+            Intent(this, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_SINGLE_TOP },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val stopIntent = PendingIntent.getService(
@@ -129,7 +135,7 @@ class ForwarderService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("SMS Forwarder")
+            .setContentTitle("T2-SMS-forwarding")
             .setContentText(status)
             .setSmallIcon(android.R.drawable.ic_dialog_email)
             .setContentIntent(openIntent)
@@ -141,15 +147,15 @@ class ForwarderService : Service() {
     }
 
     private fun updateNotification(status: String) {
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.notify(NOTIFICATION_ID, buildNotification(status))
+        val mgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        mgr.notify(NOTIFICATION_ID, buildNotification(status))
     }
 
     private fun broadcastUiUpdate() {
         sendBroadcast(Intent(ACTION_UPDATE_UI).setPackage(packageName))
     }
 
-    // ------------------------------------------------------------------ companion
+    // ────────────────────────────────────────────────────── companion
 
     companion object {
         const val ACTION_FORWARD_SMS  = "com.smsforwarder.FORWARD_SMS"
@@ -163,7 +169,7 @@ class ForwarderService : Service() {
         const val EXTRA_SIM_SLOT  = "extra_sim_slot"
 
         private const val NOTIFICATION_ID = 1001
-        private const val CHANNEL_ID      = "sms_forwarder_channel"
+        private const val CHANNEL_ID      = "t2_sms_channel"
         private const val TAG             = "ForwarderService"
     }
 }

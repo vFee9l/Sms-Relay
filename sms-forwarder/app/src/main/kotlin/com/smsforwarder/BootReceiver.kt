@@ -20,10 +20,12 @@ class BootReceiver : BroadcastReceiver() {
 
         val prefs = PreferencesManager(context)
         if (prefs.isForwardingEnabled) {
-            Log.d(TAG, "Boot event '$action' — auto-starting ForwarderService")
+            Log.d(TAG, "Boot '$action' — auto-starting ForwarderService")
+            prefs.addSyslog("[BOOT] '$action' — auto-starting service")
             start(context)
         } else {
-            Log.d(TAG, "Boot event '$action' — forwarding is disabled, skipping start")
+            Log.d(TAG, "Boot '$action' — forwarding disabled, skipping start")
+            prefs.addSyslog("[BOOT] '$action' — forwarding disabled, service not started")
         }
     }
 

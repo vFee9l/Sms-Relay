@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!-- App Bar -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,670 +19,797 @@
             app:title="T2-SMS-forwarding"
             app:titleTextColor="@android:color/white" />
 
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- Scrollable content -->
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:padding="16dp"
-        android:clipToPadding="false">
-
-        <LinearLayout
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="32dp">
+            android:background="@color/primary"
+            app:tabTextColor="#99FFFFFF"
+            app:tabSelectedTextColor="@android:color/white"
+            app:tabIndicatorColor="@android:color/white"
+            app:tabMode="fixed">
 
-            <!-- ── Status Card ── -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardStatus"
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Settings" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="History" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Syslog" />
+
+        </com.google.android.material.tabs.TabLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Tab content container -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <!-- ═══════════════════════════════════════ TAB: SETTINGS -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/viewSettings"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:clipToPadding="false"
+            android:visibility="visible">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                android:orientation="vertical"
+                android:paddingBottom="32dp">
 
-                <LinearLayout
+                <!-- ── Status Card ── -->
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
 
-                    <View
-                        android:id="@+id/statusIndicator"
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:background="@drawable/circle_red" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/tvServiceStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Service Stopped"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvStatusSubtitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Tap the toggle to start"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="13sp" />
-
-                    </LinearLayout>
-
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchService"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- ════════════════════════════════════════════════════════════ -->
-            <!-- ── SIM 1 Settings Card ── -->
-            <!-- ════════════════════════════════════════════════════════════ -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <!-- Header: SIM badge | title | spacer | Enabled switch -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:padding="16dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@color/primary"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="8dp"
-                            android:paddingTop="2dp"
-                            android:paddingBottom="2dp"
-                            android:text="SIM 1"
-                            android:textColor="@android:color/white"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
+                        <View
+                            android:id="@+id/statusIndicator"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:background="@drawable/circle_red" />
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:layout_weight="1"
-                            android:layout_marginStart="8dp"
-                            android:text="Webhook Settings"
-                            android:textColor="@color/primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
+                            android:orientation="vertical">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="4dp"
-                            android:text="Active"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            <TextView
+                                android:id="@+id/tvServiceStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Service Stopped"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvStatusSubtitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Tap the toggle to start"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchSim1Enabled"
+                            android:id="@+id/switchService"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true" />
+                            android:layout_height="wrap_content" />
 
                     </LinearLayout>
 
-                    <!-- Webhook URL -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilSim1WebhookUrl"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:hint="Webhook URL">
+                </com.google.android.material.card.MaterialCardView>
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etSim1WebhookUrl"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:imeOptions="actionNext"
-                            android:inputType="textUri"
-                            android:singleLine="true" />
+                <!-- ════════════════════════════════ SIM 1 CARD ════ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
 
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Secret Key -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:hint="Secret Key">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etSim1Secret"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:imeOptions="actionNext"
-                            android:inputType="text"
-                            android:singleLine="true" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Device ID + Phone row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
+                        <!-- Header row -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="12dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@color/primary"
+                                android:paddingStart="8dp" android:paddingEnd="8dp"
+                                android:paddingTop="2dp" android:paddingBottom="2dp"
+                                android:text="SIM 1"
+                                android:textColor="@android:color/white"
+                                android:textSize="12sp" android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="8dp"
+                                android:text="Webhook Settings"
+                                android:textColor="@color/primary"
+                                android:textSize="14sp" android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:text="Active"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchSim1Enabled"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checked="true" />
+
+                        </LinearLayout>
+
+                        <!-- Webhook URL -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilSim1WebhookUrl"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:hint="Webhook URL">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etSim1WebhookUrl"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:imeOptions="actionNext"
+                                android:inputType="textUri"
+                                android:singleLine="true" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Secret Key -->
                         <com.google.android.material.textfield.TextInputLayout
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:hint="Device ID">
-
+                            android:layout_marginBottom="10dp"
+                            android:hint="Secret Key">
                             <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etSim1DeviceId"
+                                android:id="@+id/etSim1Secret"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:imeOptions="actionNext"
                                 android:inputType="text"
                                 android:singleLine="true" />
-
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="0dp"
+                        <!-- Device ID + Phone -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="6dp"
-                            android:hint="SIM 1 Phone No.">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etSim1Phone"
-                                android:layout_width="match_parent"
+                            android:orientation="horizontal">
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:imeOptions="actionDone"
-                                android:inputType="phone"
-                                android:singleLine="true" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                    </LinearLayout>
-
-                    <!-- Save + Test row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSaveSim1"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:text="Save" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnTestSim1"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="6dp"
-                            android:text="Test Connection" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/tvTestSim1Result"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:fontFamily="monospace"
-                        android:textSize="12sp"
-                        android:visibility="gone" />
-
-                    <!-- ── Divider ── -->
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="14dp"
-                        android:background="#E0E0E0" />
-
-                    <!-- ── SIM 1 Allowed Senders ── -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="2dp"
-                        android:text="Allowed Senders (SIM 1)"
-                        android:textColor="@color/primary"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvSim1SenderHint"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:text="No filter — all senders forwarded on SIM 1"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:layout_weight="1"
-                            android:hint="Phone number or sender name">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etSim1SenderInput"
-                                android:layout_width="match_parent"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="6dp"
+                                android:hint="Device ID">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim1DeviceId"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:imeOptions="actionNext"
+                                    android:inputType="text"
+                                    android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:imeOptions="actionDone"
-                                android:inputType="text"
-                                android:singleLine="true" />
+                                android:layout_weight="1"
+                                android:layout_marginStart="6dp"
+                                android:hint="SIM 1 Phone No.">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim1Phone"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:imeOptions="actionDone"
+                                    android:inputType="phone"
+                                    android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
 
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnAddSim1Sender"
-                            android:layout_width="wrap_content"
+                        <!-- Save + Test -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Add" />
-
-                    </LinearLayout>
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupSim1Senders"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- ════════════════════════════════════════════════════════════ -->
-            <!-- ── SIM 2 Settings Card ── -->
-            <!-- ════════════════════════════════════════════════════════════ -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <!-- Header: SIM badge | title | spacer | Enabled switch -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp"
-                        android:orientation="horizontal">
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSaveSim1"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="6dp"
+                                android:text="Save" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnTestSim1"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="6dp"
+                                android:text="Test Connection" />
+                        </LinearLayout>
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/tvTestSim1Result"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:background="@color/sim2_color"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="8dp"
-                            android:paddingTop="2dp"
-                            android:paddingBottom="2dp"
-                            android:text="SIM 2"
-                            android:textColor="@android:color/white"
+                            android:layout_marginTop="6dp"
+                            android:fontFamily="monospace"
                             android:textSize="12sp"
-                            android:textStyle="bold" />
+                            android:visibility="gone" />
 
+                        <!-- ─── Divider ─── -->
+                        <View android:layout_width="match_parent" android:layout_height="1dp"
+                            android:layout_marginTop="16dp" android:layout_marginBottom="14dp"
+                            android:background="#E0E0E0" />
+
+                        <!-- ─── Allowed Senders ─── -->
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="2dp"
+                            android:text="Allowed Senders"
+                            android:textColor="@color/primary" android:textSize="13sp" android:textStyle="bold" />
                         <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="8dp"
-                            android:text="Webhook Settings"
-                            android:textColor="@color/sim2_color"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
+                            android:id="@+id/tvSim1SenderHint"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:text="No filter — all senders forwarded"
+                            android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp" android:gravity="center_vertical"
+                            android:orientation="horizontal">
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginEnd="8dp"
+                                android:hint="Phone number or sender name">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim1SenderInput"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionDone" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddSim1Sender"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Add" />
+                        </LinearLayout>
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupSim1Senders"
+                            android:layout_width="match_parent" android:layout_height="wrap_content" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="4dp"
-                            android:text="Active"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                        <!-- ─── Divider ─── -->
+                        <View android:layout_width="match_parent" android:layout_height="1dp"
+                            android:layout_marginTop="16dp" android:layout_marginBottom="14dp"
+                            android:background="#E0E0E0" />
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchSim2Enabled"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true" />
+                        <!-- ─── Custom Request Headers ─── -->
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="2dp"
+                            android:text="Custom Request Headers"
+                            android:textColor="@color/primary" android:textSize="13sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:text="Added to every webhook HTTP request (e.g. Authorization)"
+                            android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp" android:orientation="horizontal">
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginEnd="4dp"
+                                android:hint="Header name">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim1HeaderKey"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionNext" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginStart="4dp" android:layout_marginEnd="6dp"
+                                android:hint="Value">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim1HeaderValue"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionDone" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddSim1Header"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Add" />
+                        </LinearLayout>
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupSim1Headers"
+                            android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+                        <!-- ─── Divider ─── -->
+                        <View android:layout_width="match_parent" android:layout_height="1dp"
+                            android:layout_marginTop="16dp" android:layout_marginBottom="14dp"
+                            android:background="#E0E0E0" />
+
+                        <!-- ─── Extra Body Fields ─── -->
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="2dp"
+                            android:text="Extra Body Fields"
+                            android:textColor="@color/primary" android:textSize="13sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:text="Additional key-value pairs appended to the JSON body"
+                            android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp" android:orientation="horizontal">
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginEnd="4dp"
+                                android:hint="Field name">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim1BodyKey"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionNext" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginStart="4dp" android:layout_marginEnd="6dp"
+                                android:hint="Value">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim1BodyValue"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionDone" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddSim1Body"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:text="Add" />
+                        </LinearLayout>
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupSim1Body"
+                            android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+                        <!-- ─── Divider ─── -->
+                        <View android:layout_width="match_parent" android:layout_height="1dp"
+                            android:layout_marginTop="16dp" android:layout_marginBottom="14dp"
+                            android:background="#E0E0E0" />
+
+                        <!-- ─── Security ─── -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:gravity="center_vertical" android:orientation="horizontal">
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:text="Disable SSL Verification"
+                                    android:textColor="@color/primary" android:textSize="13sp" android:textStyle="bold" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:text="Allow self-signed or expired certificates"
+                                    android:textColor="@color/text_secondary" android:textSize="12sp" />
+                            </LinearLayout>
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchSim1DisableSsl"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
 
                     </LinearLayout>
 
-                    <!-- Webhook URL -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilSim2WebhookUrl"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:hint="Webhook URL">
+                </com.google.android.material.card.MaterialCardView>
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etSim2WebhookUrl"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:imeOptions="actionNext"
-                            android:inputType="textUri"
-                            android:singleLine="true" />
+                <!-- ════════════════════════════════ SIM 2 CARD ════ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
 
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Secret Key -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:hint="Secret Key">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etSim2Secret"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:imeOptions="actionNext"
-                            android:inputType="text"
-                            android:singleLine="true" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Device ID + Phone row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
+                        <!-- Header row -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:gravity="center_vertical" android:layout_marginBottom="12dp"
+                            android:orientation="horizontal">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:background="@color/sim2_color"
+                                android:paddingStart="8dp" android:paddingEnd="8dp"
+                                android:paddingTop="2dp" android:paddingBottom="2dp"
+                                android:text="SIM 2"
+                                android:textColor="@android:color/white"
+                                android:textSize="12sp" android:textStyle="bold" />
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginStart="8dp"
+                                android:text="Webhook Settings"
+                                android:textColor="@color/sim2_color"
+                                android:textSize="14sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:text="Active"
+                                android:textColor="@color/text_secondary" android:textSize="12sp" />
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchSim2Enabled"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:checked="true" />
+                        </LinearLayout>
+
+                        <!-- Webhook URL -->
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilSim2WebhookUrl"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:hint="Device ID">
-
+                            android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp" android:hint="Webhook URL">
                             <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etSim2DeviceId"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:imeOptions="actionNext"
-                                android:inputType="text"
-                                android:singleLine="true" />
-
+                                android:id="@+id/etSim2WebhookUrl"
+                                android:layout_width="match_parent" android:layout_height="wrap_content"
+                                android:imeOptions="actionNext" android:inputType="textUri" android:singleLine="true" />
                         </com.google.android.material.textfield.TextInputLayout>
 
+                        <!-- Secret Key -->
                         <com.google.android.material.textfield.TextInputLayout
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="6dp"
-                            android:hint="SIM 2 Phone No.">
-
+                            android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp" android:hint="Secret Key">
                             <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etSim2Phone"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:imeOptions="actionDone"
-                                android:inputType="phone"
-                                android:singleLine="true" />
-
+                                android:id="@+id/etSim2Secret"
+                                android:layout_width="match_parent" android:layout_height="wrap_content"
+                                android:imeOptions="actionNext" android:inputType="text" android:singleLine="true" />
                         </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Device ID + Phone -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginEnd="6dp" android:hint="Device ID">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim2DeviceId"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionNext" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginStart="6dp" android:hint="SIM 2 Phone No.">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim2Phone"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionDone" android:inputType="phone" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
+
+                        <!-- Save + Test -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp" android:orientation="horizontal">
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSaveSim2"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginEnd="6dp"
+                                android:backgroundTint="@color/sim2_color"
+                                android:text="Save" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnTestSim2"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginStart="6dp"
+                                android:text="Test Connection" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvTestSim2Result"
+                            android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:fontFamily="monospace" android:textSize="12sp" android:visibility="gone" />
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp"
+                            android:layout_marginTop="16dp" android:layout_marginBottom="14dp" android:background="#E0E0E0" />
+
+                        <!-- Allowed Senders -->
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="2dp" android:text="Allowed Senders"
+                            android:textColor="@color/sim2_color" android:textSize="13sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/tvSim2SenderHint"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:text="No filter — all senders forwarded"
+                            android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp" android:gravity="center_vertical" android:orientation="horizontal">
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginEnd="8dp"
+                                android:hint="Phone number or sender name">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim2SenderInput"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionDone" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddSim2Sender"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:backgroundTint="@color/sim2_color" android:text="Add" />
+                        </LinearLayout>
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupSim2Senders"
+                            android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp"
+                            android:layout_marginTop="16dp" android:layout_marginBottom="14dp" android:background="#E0E0E0" />
+
+                        <!-- Custom Request Headers -->
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="2dp" android:text="Custom Request Headers"
+                            android:textColor="@color/sim2_color" android:textSize="13sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:text="Added to every webhook HTTP request (e.g. Authorization)"
+                            android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp" android:orientation="horizontal">
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginEnd="4dp" android:hint="Header name">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim2HeaderKey"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionNext" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginStart="4dp" android:layout_marginEnd="6dp" android:hint="Value">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim2HeaderValue"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionDone" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddSim2Header"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:backgroundTint="@color/sim2_color" android:text="Add" />
+                        </LinearLayout>
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupSim2Headers"
+                            android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp"
+                            android:layout_marginTop="16dp" android:layout_marginBottom="14dp" android:background="#E0E0E0" />
+
+                        <!-- Extra Body Fields -->
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="2dp" android:text="Extra Body Fields"
+                            android:textColor="@color/sim2_color" android:textSize="13sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:text="Additional key-value pairs appended to the JSON body"
+                            android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp" android:orientation="horizontal">
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginEnd="4dp" android:hint="Field name">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim2BodyKey"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionNext" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:layout_marginStart="4dp" android:layout_marginEnd="6dp" android:hint="Value">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSim2BodyValue"
+                                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                                    android:imeOptions="actionDone" android:inputType="text" android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddSim2Body"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:backgroundTint="@color/sim2_color" android:text="Add" />
+                        </LinearLayout>
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupSim2Body"
+                            android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp"
+                            android:layout_marginTop="16dp" android:layout_marginBottom="14dp" android:background="#E0E0E0" />
+
+                        <!-- Security -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:gravity="center_vertical" android:orientation="horizontal">
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                                android:layout_weight="1" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:text="Disable SSL Verification"
+                                    android:textColor="@color/sim2_color" android:textSize="13sp" android:textStyle="bold" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:text="Allow self-signed or expired certificates"
+                                    android:textColor="@color/text_secondary" android:textSize="12sp" />
+                            </LinearLayout>
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchSim2DisableSsl"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
 
                     </LinearLayout>
 
-                    <!-- Save + Test row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
+                </com.google.android.material.card.MaterialCardView>
 
+                <!-- ── Battery Optimisation Card ── -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="vertical" android:padding="16dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp"
+                            android:text="Keep Running in Background"
+                            android:textColor="@color/primary" android:textSize="14sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            android:text="Prevents Android from killing the service. Required for reliable SMS forwarding."
+                            android:textColor="@color/text_secondary" android:textSize="12sp" />
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSaveSim2"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:backgroundTint="@color/sim2_color"
-                            android:text="Save" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnTestSim2"
+                            android:id="@+id/btnBatteryOptimization"
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="6dp"
-                            android:text="Test Connection" />
-
+                            android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:text="Disable Battery Optimisation" />
                     </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
-                    <TextView
-                        android:id="@+id/tvTestSim2Result"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:fontFamily="monospace"
-                        android:textSize="12sp"
-                        android:visibility="gone" />
+            </LinearLayout>
 
-                    <!-- ── Divider ── -->
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="14dp"
-                        android:background="#E0E0E0" />
+        </androidx.core.widget.NestedScrollView>
 
-                    <!-- ── SIM 2 Allowed Senders ── -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="2dp"
-                        android:text="Allowed Senders (SIM 2)"
-                        android:textColor="@color/sim2_color"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+        <!-- ═══════════════════════════════════════ TAB: HISTORY -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/viewHistory"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:clipToPadding="false"
+            android:visibility="gone">
 
-                    <TextView
-                        android:id="@+id/tvSim2SenderHint"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:text="No filter — all senders forwarded on SIM 2"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:layout_weight="1"
-                            android:hint="Phone number or sender name">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etSim2SenderInput"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:imeOptions="actionDone"
-                                android:inputType="text"
-                                android:singleLine="true" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnAddSim2Sender"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:backgroundTint="@color/sim2_color"
-                            android:text="Add" />
-
-                    </LinearLayout>
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupSim2Senders"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- ── Battery Optimisation Card ── -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:text="Keep Running in Background"
-                        android:textColor="@color/primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
-                        android:text="Prevents Android from killing the service. Required for reliable SMS forwarding on all devices."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnBatteryOptimization"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Disable Battery Optimisation" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- ── Recent Activity Card ── -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="16dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="8dp"
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:gravity="center_vertical" android:layout_marginBottom="12dp"
                         android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Recent Activity"
-                            android:textColor="@color/primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
+                            android:text="Forwarding History"
+                            android:textColor="@color/primary" android:textSize="14sp" android:textStyle="bold" />
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnClearLogs"
+                            android:id="@+id/btnClearHistory"
                             style="@style/Widget.MaterialComponents.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="Clear" />
-
                     </LinearLayout>
 
                     <TextView
-                        android:id="@+id/tvLogs"
+                        android:id="@+id/tvHistory"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="monospace"
-                        android:text="No activity yet"
+                        android:lineSpacingMultiplier="1.4"
+                        android:text="No forwarding events yet"
                         android:textSize="12sp" />
 
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
-        </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
 
-    </androidx.core.widget.NestedScrollView>
+        <!-- ═══════════════════════════════════════ TAB: SYSLOG -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/viewSyslog"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:clipToPadding="false"
+            android:visibility="gone">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="16dp">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:gravity="center_vertical" android:layout_marginBottom="12dp"
+                        android:orientation="horizontal">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="System Log"
+                            android:textColor="@color/primary" android:textSize="14sp" android:textStyle="bold" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnClearSyslog"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Clear" />
+                    </LinearLayout>
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="Service start/stop, boot events, SMS filter decisions, config changes"
+                        android:textColor="@color/text_secondary" android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tvSyslog"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:lineSpacingMultiplier="1.3"
+                        android:text="No system events yet"
+                        android:textSize="11sp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
