@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Monochromatic notification icon (white on transparent).
+  Android 5.0+ ignores color in small icons and renders them in white.
+  Shape: SMS speech bubble with two text lines — fits T2-SMS-forwarding.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Bubble outline -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M20,2H4C2.9,2 2,2.9 2,4L2,22L6,18L20,18C21.1,18 22,17.1 22,16L22,4C22,2.9 21.1,2 20,2Z" />
+
+    <!-- Top text line -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M7,9H17V11H7V9Z" />
+
+    <!-- Bottom text line (shorter) -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M7,13H13V15H7V13Z" />
+
+</vector>

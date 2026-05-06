@@ -35,12 +35,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Webhooks" />
-
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="History" />
-
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -50,135 +48,213 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Tab content -->
+    <!-- Tab content area -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <!-- ═══════════ TAB 0: WEBHOOKS ═══════════ -->
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
+        <FrameLayout
             android:id="@+id/viewWebhooks"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="visible">
 
-            <!-- Service status banner -->
+            <!-- Column: status banner + battery banner + card list -->
             <LinearLayout
-                android:id="@+id/statusBanner"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/surface"
-                android:elevation="2dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="20dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp">
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-                <View
-                    android:id="@+id/statusIndicator"
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:background="@drawable/circle_red" />
-
+                <!-- ── Service status banner ── -->
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:id="@+id/statusBanner"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:background="@color/surface"
+                    android:elevation="2dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
 
-                    <TextView
-                        android:id="@+id/tvServiceStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Service Stopped"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                    <!-- Logo + status indicator -->
+                    <FrameLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="12dp">
 
-                    <TextView
-                        android:id="@+id/tvStatusSubtitle"
-                        android:layout_width="wrap_content"
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@mipmap/ic_launcher_round"
+                            android:scaleType="centerCrop" />
+
+                        <!-- Running indicator dot (bottom-right of logo) -->
+                        <View
+                            android:id="@+id/statusIndicator"
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:layout_gravity="bottom|end"
+                            android:background="@drawable/circle_red"
+                            android:elevation="4dp" />
+
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Toggle to start forwarding"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvServiceStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Service Stopped"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvStatusSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Toggle to start forwarding"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchService"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
                 </LinearLayout>
 
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchService"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-            </LinearLayout>
-
-            <!-- Scrollable webhook list -->
-            <androidx.core.widget.NestedScrollView
-                android:id="@+id/scrollWebhooks"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="62dp"
-                android:clipToPadding="false"
-                android:padding="16dp"
-                android:paddingBottom="88dp">
-
+                <!-- ── Battery optimization warning banner ── -->
                 <LinearLayout
+                    android:id="@+id/batteryOptBanner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:background="#FFF8E1"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:visibility="gone">
 
-                    <!-- Empty state -->
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginEnd="10dp"
+                        android:src="@drawable/ic_battery_warning" />
+
                     <LinearLayout
-                        android:id="@+id/viewEmpty"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="64dp"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="32dp"
-                        android:visibility="gone">
-
-                        <ImageView
-                            android:layout_width="80dp"
-                            android:layout_height="80dp"
-                            android:layout_marginBottom="20dp"
-                            android:src="@drawable/ic_empty_webhooks" />
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:text="No webhooks yet"
-                            android:textColor="@color/text_primary"
-                            android:textSize="18sp"
+                            android:text="Battery optimization is ON"
+                            android:textColor="#92400E"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:text="Tap the + button to add your first webhook and start forwarding SMS"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="13sp" />
+                            android:text="The system may stop this app. Tap Disable to keep it running."
+                            android:textColor="#92400E"
+                            android:textSize="11sp" />
 
                     </LinearLayout>
 
-                    <!-- Webhook cards injected here -->
-                    <LinearLayout
-                        android:id="@+id/webhooksContainer"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDisableBatteryOpt"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical" />
+                        android:text="Disable"
+                        android:textColor="#D97706" />
 
                 </LinearLayout>
 
-            </androidx.core.widget.NestedScrollView>
+                <!-- ── Scrollable webhook cards ── -->
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scrollWebhooks"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipToPadding="false"
+                    android:padding="16dp"
+                    android:paddingBottom="88dp">
 
-            <!-- FAB -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Empty state -->
+                        <LinearLayout
+                            android:id="@+id/viewEmpty"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="48dp"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="32dp"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:layout_width="80dp"
+                                android:layout_height="80dp"
+                                android:layout_marginBottom="20dp"
+                                android:alpha="0.5"
+                                android:src="@drawable/ic_empty_webhooks" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="8dp"
+                                android:text="No webhooks yet"
+                                android:textColor="@color/text_primary"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:text="Tap  +  to add your first webhook and start forwarding SMS"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
+
+                        <!-- Webhook cards injected here by MainActivity -->
+                        <LinearLayout
+                            android:id="@+id/webhooksContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+
+                    </LinearLayout>
+
+                </androidx.core.widget.NestedScrollView>
+
+            </LinearLayout>
+
+            <!-- FAB overlaid at bottom-right -->
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab"
                 android:layout_width="wrap_content"
@@ -190,15 +266,15 @@
                 app:backgroundTint="@color/primary"
                 app:tint="@android:color/white" />
 
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        </FrameLayout>
 
         <!-- ═══════════ TAB 1: HISTORY ═══════════ -->
         <androidx.core.widget.NestedScrollView
             android:id="@+id/viewHistory"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="16dp"
             android:clipToPadding="false"
+            android:padding="16dp"
             android:visibility="gone">
 
             <com.google.android.material.card.MaterialCardView
@@ -261,8 +337,8 @@
             android:id="@+id/viewSyslog"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="16dp"
             android:clipToPadding="false"
+            android:padding="16dp"
             android:visibility="gone">
 
             <com.google.android.material.card.MaterialCardView

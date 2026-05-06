@@ -9,8 +9,11 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -28,7 +31,9 @@ class MainActivity : AppCompatActivity() {
 
     private val uiUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            refreshHistory(); refreshSyslog(); updateStatusBanner()
+            refreshHistory()
+            refreshSyslog()
+            updateStatusBanner()
         }
     }
 
@@ -47,6 +52,7 @@ class MainActivity : AppCompatActivity() {
         setupTabs()
         setupListeners()
         updateStatusBanner()
+        checkBatteryOptimization()
         refreshWebhookCards()
         refreshHistory()
         refreshSyslog()
@@ -56,7 +62,9 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateStatusBanner()
+        checkBatteryOptimization()
         refreshWebhookCards()
+
         val filter = IntentFilter(ForwarderService.ACTION_UPDATE_UI)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
             registerReceiver(uiUpdateReceiver, filter, RECEIVER_NOT_EXPORTED)
@@ -93,9 +101,40 @@ class MainActivity : AppCompatActivity() {
         binding.switchService.setOnCheckedChangeListener { _, checked ->
             if (checked) startForwarding() else stopForwarding()
         }
+
         binding.fab.setOnClickListener { openSheet(null) }
+
+        binding.btnDisableBatteryOpt.setOnClickListener {
+            requestDisableBatteryOptimization()
+        }
+
         binding.btnClearHistory.setOnClickListener { prefs.clearLogs(); refreshHistory() }
         binding.btnClearSyslog.setOnClickListener  { prefs.clearSyslog(); refreshSyslog() }
+    }
+
+    // ─────────────────────────── battery optimization
+
+    private fun isBatteryOptimizationIgnored(): Boolean {
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        return pm.isIgnoringBatteryOptimizations(packageName)
+    }
+
+    private fun checkBatteryOptimization() {
+        val ignored = isBatteryOptimizationIgnored()
+        // Show the warning banner only when optimization is still ACTIVE (bad)
+        binding.batteryOptBanner.visibility = if (ignored) View.GONE else View.VISIBLE
+    }
+
+    private fun requestDisableBatteryOptimization() {
+        try {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.parse("package:$packageName")
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            // Fallback: open general battery settings
+            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+        }
     }
 
     // ─────────────────────────── webhook cards
@@ -111,64 +150,27 @@ class MainActivity : AppCompatActivity() {
             cb.tvWebhookName.text = wh.name.ifBlank { "Unnamed" }
             cb.tvWebhookUrl.text  = wh.url.ifBlank  { "No URL set" }
 
-            // SIM badge + stripe
+            // SIM badge + stripe color
             val color = if (wh.simSlot == Webhook.SIM_2)
                 getColor(R.color.sim2_color) else getColor(R.color.sim1_color)
             cb.tvSimBadge.text = wh.simLabel
             cb.tvSimBadge.backgroundTintList = ColorStateList.valueOf(color)
             cb.simStripe.setBackgroundColor(color)
 
-            // Active label text
+            // Active toggle label
             cb.switchWebhookEnabled.isChecked = wh.enabled
-            cb.tvActiveLabel.text = if (wh.enabled) "Active" else "Inactive"
-            cb.tvActiveLabel.setTextColor(
-                if (wh.enabled) getColor(R.color.green) else getColor(R.color.text_secondary)
-            )
+            updateActiveLabel(cb, wh.enabled)
 
             cb.switchWebhookEnabled.setOnCheckedChangeListener { _, checked ->
                 repo.save(wh.copy(enabled = checked))
-                cb.tvActiveLabel.text = if (checked) "Active" else "Inactive"
-                cb.tvActiveLabel.setTextColor(
-                    if (checked) getColor(R.color.green) else getColor(R.color.text_secondary)
-                )
+                updateActiveLabel(cb, checked)
                 prefs.addSyslog("[CONFIG] '${wh.name}' ${if (checked) "enabled" else "disabled"}")
                 updateStatusBanner()
             }
 
             // Test button
             cb.btnCardTest.setOnClickListener {
-                if (wh.url.isBlank()) {
-                    Toast.makeText(this, "No URL configured", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-                cb.btnCardTest.isEnabled = false
-                cb.tvCardTestResult.visibility = View.VISIBLE
-                cb.tvCardTestResult.setTextColor(Color.parseColor("#6B7280"))
-                cb.tvCardTestResult.text = "Sending test…"
-
-                WebhookManager.send(
-                    webhookUrl    = wh.url,
-                    bodyTemplate  = wh.bodyTemplate,
-                    from          = "TEST_SENDER",
-                    message       = "T2-SMS-forwarding test message",
-                    sentTimestamp = System.currentTimeMillis(),
-                    customHeaders = wh.customHeaders,
-                    disableSsl    = wh.disableSsl,
-                    onSuccess = {
-                        runOnUiThread {
-                            cb.btnCardTest.isEnabled = true
-                            cb.tvCardTestResult.setTextColor(Color.parseColor("#16A34A"))
-                            cb.tvCardTestResult.text = "✓ Webhook received the request"
-                        }
-                    },
-                    onError = { err ->
-                        runOnUiThread {
-                            cb.btnCardTest.isEnabled = true
-                            cb.tvCardTestResult.setTextColor(Color.parseColor("#DC2626"))
-                            cb.tvCardTestResult.text = "✗ $err"
-                        }
-                    }
-                )
+                runCardTest(wh, cb)
             }
 
             // Edit button
@@ -178,13 +180,59 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateActiveLabel(cb: ItemWebhookCardBinding, enabled: Boolean) {
+        cb.tvActiveLabel.text = if (enabled) "Active" else "Inactive"
+        cb.tvActiveLabel.setTextColor(
+            if (enabled) getColor(R.color.green) else getColor(R.color.text_secondary)
+        )
+    }
+
+    private fun runCardTest(wh: Webhook, cb: ItemWebhookCardBinding) {
+        if (wh.url.isBlank()) {
+            Toast.makeText(this, "No URL configured", Toast.LENGTH_SHORT).show()
+            return
+        }
+        cb.btnCardTest.isEnabled = false
+        cb.tvCardTestResult.visibility = View.VISIBLE
+        cb.tvCardTestResult.setTextColor(Color.parseColor("#6B7280"))
+        cb.tvCardTestResult.text = "Sending test…"
+
+        WebhookManager.send(
+            webhookUrl    = wh.url,
+            bodyTemplate  = wh.bodyTemplate,
+            from          = "TEST_SENDER",
+            message       = "T2-SMS-forwarding test message",
+            sentTimestamp = System.currentTimeMillis(),
+            customHeaders = wh.customHeaders,
+            disableSsl    = wh.disableSsl,
+            onSuccess = {
+                runOnUiThread {
+                    cb.btnCardTest.isEnabled = true
+                    cb.tvCardTestResult.setTextColor(Color.parseColor("#16A34A"))
+                    cb.tvCardTestResult.text = "✓ Webhook received the request"
+                }
+            },
+            onError = { err ->
+                runOnUiThread {
+                    cb.btnCardTest.isEnabled = true
+                    cb.tvCardTestResult.setTextColor(Color.parseColor("#DC2626"))
+                    cb.tvCardTestResult.text = "✗ $err"
+                }
+            }
+        )
+    }
+
     private fun openSheet(webhook: Webhook?) {
         val sheet = WebhookConfigSheet.newInstance(webhook)
-        sheet.onSaved = { refreshWebhookCards(); refreshSyslog(); updateStatusBanner() }
+        sheet.onSaved = {
+            refreshWebhookCards()
+            refreshSyslog()
+            updateStatusBanner()
+        }
         sheet.show(supportFragmentManager, "webhook_sheet")
     }
 
-    // ─────────────────────────── service
+    // ─────────────────────────── service control
 
     private fun startForwarding() {
         if (repo.getAll().none { it.url.isNotBlank() }) {
@@ -205,17 +253,22 @@ class MainActivity : AppCompatActivity() {
         updateStatusBanner()
     }
 
-    private fun isServiceRunning() =
+    private fun isServiceRunning(): Boolean {
         @Suppress("DEPRECATION")
-        (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
+        return (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
             .getRunningServices(Int.MAX_VALUE)
             .any { it.service.className == ForwarderService::class.java.name }
+    }
 
     private fun updateStatusBanner() {
         val running = isServiceRunning()
+
+        // Detach listener while syncing toggle state
         binding.switchService.setOnCheckedChangeListener(null)
         binding.switchService.isChecked = running
-        binding.switchService.setOnCheckedChangeListener { _, c -> if (c) startForwarding() else stopForwarding() }
+        binding.switchService.setOnCheckedChangeListener { _, c ->
+            if (c) startForwarding() else stopForwarding()
+        }
 
         if (running) {
             val n = repo.getAll().count { it.enabled && it.url.isNotBlank() }
@@ -234,13 +287,15 @@ class MainActivity : AppCompatActivity() {
     private fun refreshHistory() {
         val logs = prefs.getLogs()
         binding.tvHistory.text =
-            if (logs.isEmpty()) "No forwarding events yet" else logs.take(100).joinToString("\n\n")
+            if (logs.isEmpty()) "No forwarding events yet"
+            else logs.take(100).joinToString("\n\n")
     }
 
     private fun refreshSyslog() {
         val logs = prefs.getSyslog()
         binding.tvSyslog.text =
-            if (logs.isEmpty()) "No system events yet" else logs.take(200).joinToString("\n")
+            if (logs.isEmpty()) "No system events yet"
+            else logs.take(200).joinToString("\n")
     }
 
     // ─────────────────────────── permissions
