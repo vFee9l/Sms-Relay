@@ -19,9 +19,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.slider.Slider
 import com.google.android.material.tabs.TabLayout
 import com.smsforwarder.databinding.ActivityMainBinding
 import com.smsforwarder.databinding.ItemWebhookCardBinding
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,9 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     private val uiUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            refreshHistory()
-            refreshSyslog()
-            updateStatusBanner()
+            refreshHistory(); refreshSyslog(); updateStatusBanner()
         }
     }
 
@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
 
         setupTabs()
         setupListeners()
+        setupWallpaperTab()
         updateStatusBanner()
         checkBatteryOptimization()
         refreshWebhookCards()
@@ -64,6 +65,7 @@ class MainActivity : AppCompatActivity() {
         updateStatusBanner()
         checkBatteryOptimization()
         refreshWebhookCards()
+        updateWallpaperStatus()
 
         val filter = IntentFilter(ForwarderService.ACTION_UPDATE_UI)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
@@ -84,11 +86,13 @@ class MainActivity : AppCompatActivity() {
     private fun setupTabs() {
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(t: TabLayout.Tab) {
-                binding.viewWebhooks.visibility = if (t.position == 0) View.VISIBLE else View.GONE
-                binding.viewHistory.visibility  = if (t.position == 1) View.VISIBLE else View.GONE
-                binding.viewSyslog.visibility   = if (t.position == 2) View.VISIBLE else View.GONE
-                if (t.position == 1) refreshHistory()
-                if (t.position == 2) refreshSyslog()
+                binding.viewWebhooks.visibility  = if (t.position == 0) View.VISIBLE else View.GONE
+                binding.viewWallpaper.visibility = if (t.position == 1) View.VISIBLE else View.GONE
+                binding.viewHistory.visibility   = if (t.position == 2) View.VISIBLE else View.GONE
+                binding.viewSyslog.visibility    = if (t.position == 3) View.VISIBLE else View.GONE
+                if (t.position == 1) updateWallpaperStatus()
+                if (t.position == 2) refreshHistory()
+                if (t.position == 3) refreshSyslog()
             }
             override fun onTabUnselected(t: TabLayout.Tab) {}
             override fun onTabReselected(t: TabLayout.Tab) {}
@@ -101,38 +105,105 @@ class MainActivity : AppCompatActivity() {
         binding.switchService.setOnCheckedChangeListener { _, checked ->
             if (checked) startForwarding() else stopForwarding()
         }
-
         binding.fab.setOnClickListener { openSheet(null) }
-
-        binding.btnDisableBatteryOpt.setOnClickListener {
-            requestDisableBatteryOptimization()
-        }
-
+        binding.btnDisableBatteryOpt.setOnClickListener { requestDisableBatteryOptimization() }
         binding.btnClearHistory.setOnClickListener { prefs.clearLogs(); refreshHistory() }
         binding.btnClearSyslog.setOnClickListener  { prefs.clearSyslog(); refreshSyslog() }
     }
 
-    // ─────────────────────────── battery optimization
+    // ─────────────────────────── wallpaper tab
 
-    private fun isBatteryOptimizationIgnored(): Boolean {
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        return pm.isIgnoringBatteryOptimizations(packageName)
+    private fun setupWallpaperTab() {
+        // Restore saved state into UI
+        binding.switchWallpaper.isChecked = prefs.wallpaperEnabled
+        binding.sliderThreshold.value     = prefs.wallpaperThresholdMinutes.toFloat()
+        updateThresholdLabel(prefs.wallpaperThresholdMinutes)
+
+        // Enable/disable toggle
+        binding.switchWallpaper.setOnCheckedChangeListener { _, checked ->
+            prefs.wallpaperEnabled = checked
+            if (checked) WallpaperWatchdog.enable(this)
+            else         WallpaperWatchdog.disable(this)
+            updateWallpaperStatus()
+        }
+
+        // Threshold slider
+        binding.sliderThreshold.addOnChangeListener { _, value, fromUser ->
+            val minutes = value.toInt()
+            updateThresholdLabel(minutes)
+            if (fromUser) {
+                prefs.wallpaperThresholdMinutes = minutes
+                if (prefs.wallpaperEnabled) WallpaperWatchdog.scheduleAlarm(this)
+            }
+        }
+
+        // Check & Apply Now button
+        binding.btnCheckNow.setOnClickListener {
+            if (!prefs.wallpaperEnabled) {
+                Toast.makeText(this, "Enable the watchdog first", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            WallpaperWatchdog.checkNow(this)
+            Toast.makeText(this, "Wallpaper updated", Toast.LENGTH_SHORT).show()
+            updateWallpaperStatus()
+        }
     }
 
+    private fun updateThresholdLabel(minutes: Int) {
+        binding.tvThresholdValue.text = if (minutes >= 60) {
+            val h = minutes / 60
+            val m = minutes % 60
+            if (m == 0) "$h h" else "$h h $m min"
+        } else {
+            "$minutes min"
+        }
+    }
+
+    private fun updateWallpaperStatus() {
+        val lastSms  = prefs.lastSmsReceivedTime
+        val now      = System.currentTimeMillis()
+        val threshMs = prefs.wallpaperThresholdMinutes * 60_000L
+
+        // Last SMS label
+        if (lastSms == 0L) {
+            binding.tvLastSmsTime.text = "Never"
+        } else {
+            val elapsedMs  = now - lastSms
+            val elapsedMin = TimeUnit.MILLISECONDS.toMinutes(elapsedMs)
+            binding.tvLastSmsTime.text = when {
+                elapsedMin < 1   -> "Just now"
+                elapsedMin < 60  -> "$elapsedMin min ago"
+                else             -> "${elapsedMin / 60} h ${elapsedMin % 60} min ago"
+            }
+        }
+
+        // Wallpaper state label
+        if (!prefs.wallpaperEnabled) {
+            binding.tvWallpaperState.text      = "Disabled"
+            binding.tvWallpaperState.setTextColor(getColor(R.color.text_secondary))
+        } else if (lastSms == 0L || (now - lastSms) >= threshMs) {
+            binding.tvWallpaperState.text      = "There is Delay 🔴"
+            binding.tvWallpaperState.setTextColor(getColor(R.color.red))
+        } else {
+            binding.tvWallpaperState.text      = "Active 🟢"
+            binding.tvWallpaperState.setTextColor(getColor(R.color.green))
+        }
+    }
+
+    // ─────────────────────────── battery optimization
+
     private fun checkBatteryOptimization() {
-        val ignored = isBatteryOptimizationIgnored()
-        // Show the warning banner only when optimization is still ACTIVE (bad)
-        binding.batteryOptBanner.visibility = if (ignored) View.GONE else View.VISIBLE
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        binding.batteryOptBanner.visibility =
+            if (pm.isIgnoringBatteryOptimizations(packageName)) View.GONE else View.VISIBLE
     }
 
     private fun requestDisableBatteryOptimization() {
         try {
-            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+            startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                 data = Uri.parse("package:$packageName")
-            }
-            startActivity(intent)
+            })
         } catch (e: Exception) {
-            // Fallback: open general battery settings
             startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
         }
     }
@@ -150,14 +221,12 @@ class MainActivity : AppCompatActivity() {
             cb.tvWebhookName.text = wh.name.ifBlank { "Unnamed" }
             cb.tvWebhookUrl.text  = wh.url.ifBlank  { "No URL set" }
 
-            // SIM badge + stripe color
             val color = if (wh.simSlot == Webhook.SIM_2)
                 getColor(R.color.sim2_color) else getColor(R.color.sim1_color)
             cb.tvSimBadge.text = wh.simLabel
             cb.tvSimBadge.backgroundTintList = ColorStateList.valueOf(color)
             cb.simStripe.setBackgroundColor(color)
 
-            // Active toggle label
             cb.switchWebhookEnabled.isChecked = wh.enabled
             updateActiveLabel(cb, wh.enabled)
 
@@ -168,12 +237,7 @@ class MainActivity : AppCompatActivity() {
                 updateStatusBanner()
             }
 
-            // Test button
-            cb.btnCardTest.setOnClickListener {
-                runCardTest(wh, cb)
-            }
-
-            // Edit button
+            cb.btnCardTest.setOnClickListener { runCardTest(wh, cb) }
             cb.btnCardEdit.setOnClickListener { openSheet(wh) }
 
             binding.webhooksContainer.addView(cb.root)
@@ -224,11 +288,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun openSheet(webhook: Webhook?) {
         val sheet = WebhookConfigSheet.newInstance(webhook)
-        sheet.onSaved = {
-            refreshWebhookCards()
-            refreshSyslog()
-            updateStatusBanner()
-        }
+        sheet.onSaved = { refreshWebhookCards(); refreshSyslog(); updateStatusBanner() }
         sheet.show(supportFragmentManager, "webhook_sheet")
     }
 
@@ -262,14 +322,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateStatusBanner() {
         val running = isServiceRunning()
-
-        // Detach listener while syncing toggle state
         binding.switchService.setOnCheckedChangeListener(null)
         binding.switchService.isChecked = running
         binding.switchService.setOnCheckedChangeListener { _, c ->
             if (c) startForwarding() else stopForwarding()
         }
-
         if (running) {
             val n = repo.getAll().count { it.enabled && it.url.isNotBlank() }
             binding.statusIndicator.setBackgroundResource(R.drawable.circle_green)

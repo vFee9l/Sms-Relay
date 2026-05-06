@@ -21,6 +21,9 @@
     <!-- Notifications (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Wallpaper -->
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -80,6 +83,11 @@
                 <action android:name="com.smsforwarder.RESTART_SERVICE" />
             </intent-filter>
         </receiver>
+
+        <!-- Wallpaper watchdog alarm -->
+        <receiver
+            android:name=".WallpaperAlarmReceiver"
+            android:exported="false" />
 
     </application>
 

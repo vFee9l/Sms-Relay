@@ -4,11 +4,10 @@ import android.content.Context
 import android.content.SharedPreferences
 
 /**
- * Stores the global forwarding flag and two rolling logs:
- *   - Forwarding history (per-message OK/ERR events)
- *   - Syslog (service lifecycle, boot, filter decisions, config changes)
+ * Stores global app settings and two rolling logs.
  *
- * Per-webhook configuration has moved to [WebhookRepository].
+ * Per-webhook configuration lives in [WebhookRepository].
+ * Wallpaper watchdog settings live here.
  */
 class PreferencesManager(context: Context) {
 
@@ -20,6 +19,23 @@ class PreferencesManager(context: Context) {
     var isForwardingEnabled: Boolean
         get() = prefs.getBoolean(KEY_FORWARDING_ENABLED, false)
         set(v) { prefs.edit().putBoolean(KEY_FORWARDING_ENABLED, v).apply() }
+
+    // ── Wallpaper watchdog ───────────────────────────────────────────────────
+
+    /** Whether the wallpaper watchdog is active. */
+    var wallpaperEnabled: Boolean
+        get() = prefs.getBoolean(KEY_WALLPAPER_ENABLED, false)
+        set(v) { prefs.edit().putBoolean(KEY_WALLPAPER_ENABLED, v).apply() }
+
+    /** Threshold in minutes — if no SMS in this period → Delay wallpaper. */
+    var wallpaperThresholdMinutes: Int
+        get() = prefs.getInt(KEY_WALLPAPER_THRESHOLD, 30)
+        set(v) { prefs.edit().putInt(KEY_WALLPAPER_THRESHOLD, v).apply() }
+
+    /** Epoch ms of the last SMS received (0 = never). */
+    var lastSmsReceivedTime: Long
+        get() = prefs.getLong(KEY_LAST_SMS_TIME, 0L)
+        set(v) { prefs.edit().putLong(KEY_LAST_SMS_TIME, v).apply() }
 
     // ── Forwarding history ───────────────────────────────────────────────────
 
@@ -48,10 +64,13 @@ class PreferencesManager(context: Context) {
     }
 
     companion object {
-        private const val PREFS_NAME            = "sms_forwarder_prefs"
-        private const val KEY_FORWARDING_ENABLED = "forwarding_enabled"
-        private const val KEY_LOGS               = "logs"
-        private const val KEY_SYSLOG             = "syslog"
-        private const val SEP                    = "\n||||\n"
+        private const val PREFS_NAME             = "sms_forwarder_prefs"
+        private const val KEY_FORWARDING_ENABLED  = "forwarding_enabled"
+        private const val KEY_WALLPAPER_ENABLED   = "wallpaper_enabled"
+        private const val KEY_WALLPAPER_THRESHOLD = "wallpaper_threshold_min"
+        private const val KEY_LAST_SMS_TIME       = "last_sms_time"
+        private const val KEY_LOGS                = "logs"
+        private const val KEY_SYSLOG              = "syslog"
+        private const val SEP                     = "\n||||\n"
     }
 }

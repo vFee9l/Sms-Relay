@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:background="@color/primary"
             app:tabIndicatorColor="@android:color/white"
-            app:tabMode="fixed"
+            app:tabMode="scrollable"
             app:tabSelectedTextColor="@android:color/white"
             app:tabTextColor="#99FFFFFF">
 
@@ -35,6 +35,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Webhooks" />
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wallpaper" />
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -48,7 +52,7 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Tab content area -->
+    <!-- Tab content -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -61,13 +65,12 @@
             android:layout_height="match_parent"
             android:visibility="visible">
 
-            <!-- Column: status banner + battery banner + card list -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
-                <!-- ── Service status banner ── -->
+                <!-- Service status banner -->
                 <LinearLayout
                     android:id="@+id/statusBanner"
                     android:layout_width="match_parent"
@@ -81,19 +84,15 @@
                     android:paddingTop="12dp"
                     android:paddingBottom="12dp">
 
-                    <!-- Logo + status indicator -->
                     <FrameLayout
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:layout_marginEnd="12dp">
-
                         <ImageView
                             android:layout_width="40dp"
                             android:layout_height="40dp"
                             android:src="@mipmap/ic_launcher_round"
                             android:scaleType="centerCrop" />
-
-                        <!-- Running indicator dot (bottom-right of logo) -->
                         <View
                             android:id="@+id/statusIndicator"
                             android:layout_width="12dp"
@@ -101,7 +100,6 @@
                             android:layout_gravity="bottom|end"
                             android:background="@drawable/circle_red"
                             android:elevation="4dp" />
-
                     </FrameLayout>
 
                     <LinearLayout
@@ -109,7 +107,6 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical">
-
                         <TextView
                             android:id="@+id/tvServiceStatus"
                             android:layout_width="wrap_content"
@@ -118,7 +115,6 @@
                             android:textColor="@color/text_primary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
-
                         <TextView
                             android:id="@+id/tvStatusSubtitle"
                             android:layout_width="wrap_content"
@@ -126,7 +122,6 @@
                             android:text="Toggle to start forwarding"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
-
                     </LinearLayout>
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
@@ -136,7 +131,7 @@
 
                 </LinearLayout>
 
-                <!-- ── Battery optimization warning banner ── -->
+                <!-- Battery optimization warning -->
                 <LinearLayout
                     android:id="@+id/batteryOptBanner"
                     android:layout_width="match_parent"
@@ -161,7 +156,6 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical">
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -169,14 +163,12 @@
                             android:textColor="#92400E"
                             android:textSize="13sp"
                             android:textStyle="bold" />
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="The system may stop this app. Tap Disable to keep it running."
                             android:textColor="#92400E"
                             android:textSize="11sp" />
-
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
@@ -189,7 +181,7 @@
 
                 </LinearLayout>
 
-                <!-- ── Scrollable webhook cards ── -->
+                <!-- Scrollable webhook cards -->
                 <androidx.core.widget.NestedScrollView
                     android:id="@+id/scrollWebhooks"
                     android:layout_width="match_parent"
@@ -214,14 +206,12 @@
                             android:orientation="vertical"
                             android:padding="32dp"
                             android:visibility="gone">
-
                             <ImageView
                                 android:layout_width="80dp"
                                 android:layout_height="80dp"
                                 android:layout_marginBottom="20dp"
                                 android:alpha="0.5"
                                 android:src="@drawable/ic_empty_webhooks" />
-
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -230,7 +220,6 @@
                                 android:textColor="@color/text_primary"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
-
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -238,10 +227,9 @@
                                 android:text="Tap  +  to add your first webhook and start forwarding SMS"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="13sp" />
-
                         </LinearLayout>
 
-                        <!-- Webhook cards injected here by MainActivity -->
+                        <!-- Webhook cards -->
                         <LinearLayout
                             android:id="@+id/webhooksContainer"
                             android:layout_width="match_parent"
@@ -254,7 +242,7 @@
 
             </LinearLayout>
 
-            <!-- FAB overlaid at bottom-right -->
+            <!-- FAB -->
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab"
                 android:layout_width="wrap_content"
@@ -268,7 +256,366 @@
 
         </FrameLayout>
 
-        <!-- ═══════════ TAB 1: HISTORY ═══════════ -->
+        <!-- ═══════════ TAB 1: WALLPAPER WATCHDOG ═══════════ -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/viewWallpaper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="16dp"
+            android:paddingBottom="24dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Enable card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/card_stroke"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Wallpaper Watchdog"
+                                android:textColor="@color/text_primary"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Auto-switch wallpaper based on SMS activity"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchWallpaper"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Threshold card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/card_stroke"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp"
+                            android:text="DELAY THRESHOLD"
+                            android:textColor="@color/primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.1" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            android:text="If no SMS is received within this period, the wallpaper switches to "There is Delay""
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                        <!-- Current value label -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="4dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Threshold"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/tvThresholdValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="30 min"
+                                android:textColor="@color/primary"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/sliderThreshold"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:valueFrom="5"
+                            android:valueTo="120"
+                            android:stepSize="5"
+                            android:value="30" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="5 min"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="120 min"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Status card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/card_stroke"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            android:text="CURRENT STATUS"
+                            android:textColor="@color/primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.1" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="8dp">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Last SMS received"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="13sp" />
+                            <TextView
+                                android:id="@+id/tvLastSmsTime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Never"
+                                android:textColor="@color/text_primary"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Wallpaper state"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="13sp" />
+                            <TextView
+                                android:id="@+id/tvWallpaperState"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/text_primary"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCheckNow"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Check &amp; Apply Now" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Wallpaper preview card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/card_stroke"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            android:text="WALLPAPER PREVIEWS"
+                            android:textColor="@color/primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.1" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <!-- Active preview -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="6dp"
+                                android:orientation="vertical">
+
+                                <com.google.android.material.card.MaterialCardView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="180dp"
+                                    android:layout_marginBottom="6dp"
+                                    app:cardCornerRadius="10dp"
+                                    app:cardElevation="0dp">
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/wallpaper_active" />
+                                </com.google.android.material.card.MaterialCardView>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:drawablePadding="4dp"
+                                    android:text="● ACTIVE"
+                                    android:textColor="@color/green"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:text="SMS within threshold"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="10sp" />
+
+                            </LinearLayout>
+
+                            <!-- Delay preview -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="6dp"
+                                android:orientation="vertical">
+
+                                <com.google.android.material.card.MaterialCardView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="180dp"
+                                    android:layout_marginBottom="6dp"
+                                    app:cardCornerRadius="10dp"
+                                    app:cardElevation="0dp">
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/wallpaper_delay" />
+                                </com.google.android.material.card.MaterialCardView>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:text="● THERE IS DELAY"
+                                    android:textColor="@color/red"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:text="No SMS in threshold period"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="10sp" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+        <!-- ═══════════ TAB 2: HISTORY ═══════════ -->
         <androidx.core.widget.NestedScrollView
             android:id="@+id/viewHistory"
             android:layout_width="match_parent"
@@ -297,7 +644,6 @@
                         android:gravity="center_vertical"
                         android:layout_marginBottom="12dp"
                         android:orientation="horizontal">
-
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -306,14 +652,12 @@
                             android:textColor="@color/text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
-
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnClearHistory"
                             style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Clear" />
-
                     </LinearLayout>
 
                     <TextView
@@ -332,7 +676,7 @@
 
         </androidx.core.widget.NestedScrollView>
 
-        <!-- ═══════════ TAB 2: SYSLOG ═══════════ -->
+        <!-- ═══════════ TAB 3: SYSLOG ═══════════ -->
         <androidx.core.widget.NestedScrollView
             android:id="@+id/viewSyslog"
             android:layout_width="match_parent"
@@ -361,7 +705,6 @@
                         android:gravity="center_vertical"
                         android:layout_marginBottom="4dp"
                         android:orientation="horizontal">
-
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -370,14 +713,12 @@
                             android:textColor="@color/text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
-
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnClearSyslog"
                             style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Clear" />
-
                     </LinearLayout>
 
                     <TextView

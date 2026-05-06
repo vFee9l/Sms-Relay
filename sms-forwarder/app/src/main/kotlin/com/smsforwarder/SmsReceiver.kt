@@ -13,20 +13,28 @@ class SmsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
 
+        val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
+        if (messages.isNullOrEmpty()) return
+
+        val from = messages[0].displayOriginatingAddress ?: return
+        val body = messages.joinToString("") { it.messageBody ?: "" }
+        val ts   = messages[0].timestampMillis
+
         val prefs = PreferencesManager(context)
+
+        // ── Wallpaper watchdog (independent of forwarding toggle) ─────────
+        prefs.lastSmsReceivedTime = System.currentTimeMillis()
+        if (prefs.wallpaperEnabled) {
+            WallpaperWatchdog.onSmsReceived(context)
+        }
+
+        // ── SMS forwarding ────────────────────────────────────────────────
         if (!prefs.isForwardingEnabled) return
 
         val subscriptionId = getSubscriptionId(intent)
         val simSlot        = getSimSlot(context, subscriptionId)
+        val sim            = "SIM${simSlot + 1}"
 
-        val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
-        if (messages.isNullOrEmpty()) return
-
-        val from  = messages[0].displayOriginatingAddress ?: return
-        val body  = messages.joinToString("") { it.messageBody ?: "" }
-        val ts    = messages[0].timestampMillis
-
-        val sim = "SIM${simSlot + 1}"
         Log.d(TAG, "SMS from=$from  sim=$sim")
         prefs.addSyslog("[SMS] from=$from on $sim")
 
@@ -37,7 +45,6 @@ class SmsReceiver : BroadcastReceiver() {
         }
 
         for (wh in webhooks) {
-            Log.d(TAG, "Dispatching to '${wh.name}' (${wh.url})")
             val fwd = Intent(context, ForwarderService::class.java).apply {
                 action = ForwarderService.ACTION_FORWARD_SMS
                 putExtra(ForwarderService.EXTRA_FROM,       from)
